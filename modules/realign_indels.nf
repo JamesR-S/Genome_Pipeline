@@ -3,21 +3,21 @@ process realignIndels {
     tag "${sampleName}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      tuple val(sampleName), file(dedupBam) from dedupBams
+      tuple val(sampleName), file(dedupBam)
     output:
-      tuple val(sampleName), file("${sampleName}_realigned.bam") into realignedBams
+      tuple val(sampleName), file("${sampleName}_realigned.bam")
     script:
-    """
-    echo "Running GATK indel realignment for sample ${sampleName}"
-    # Create realignment intervals
-    java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
+      """
+      echo "Running GATK indel realignment for sample ${sampleName}"
+      # Create realignment intervals
+      java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
       -T RealignerTargetCreator \
       -R ${params.referenceFasta} \
       -I ${dedupBam} \
       -o ${sampleName}.intervals \
       -known ${params.goldStandardIndels}
-    # Realign indels
-    java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
+      # Realign indels
+      java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
       -T IndelRealigner \
       -R ${params.referenceFasta} \
       -I ${dedupBam} \
@@ -25,5 +25,5 @@ process realignIndels {
       -o ${sampleName}_realigned.bam \
       -known ${params.goldStandardIndels} \
       --maxReadsInMemory 100000000 --maxReadsForRealignment 600000
-    """
+      """
 }

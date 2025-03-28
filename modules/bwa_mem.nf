@@ -5,11 +5,11 @@ process bwaMem {
     input:
       val sample
     output:
-      tuple val(sample.name), file("${sample.name}.sam") into samFiles
+      tuple val(sample.name), file("${sample.name}.sam")
     script:
-    """
-    echo "Running bwa mem for sample ${sample.name}"
-    ${params.bwa} mem -t 16 -M -R "@RG\\tID:${sample.flowcell}\\tPL:${sample.platform}\\tSM:${sample.name}\\tLB:${sample.name}_${sample.flowcell}" \
+      """
+      echo "Running bwa mem for sample ${sample.name}"
+      ${params.bwa} mem -t 16 -M -R "@RG\\tID:${sample.flowcell}\\tPL:${sample.platform}\\tSM:${sample.name}\\tLB:${sample.name}_${sample.flowcell}" \
       ${params.referenceFasta} fastq/${sample.fastq1} fastq/${sample.fastq2} > ${sample.name}.sam
-    """
+      """
 }

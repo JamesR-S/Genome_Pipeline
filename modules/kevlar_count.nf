@@ -5,10 +5,10 @@ process kevlarCount {
     input:
       val sample
     output:
-      tuple val(sample.name), file("${sample.name}.ct") into kevlarCounts
+      tuple val(sample.name), file("${sample.name}.ct")
     script:
-    """
-    echo "Running kevlar count for sample ${sample.name}"
-    kevlar count --memory 70000M --mask ${params.kevlarMask} fastq/${sample.fastq1} fastq/${sample.fastq2} > ${sample.name}.ct
-    """
+      """
+      echo "Running kevlar count for sample ${sample.name}"
+      kevlar count --memory 70000M --mask ${params.kevlarMask} fastq/${sample.fastq1} fastq/${sample.fastq2} > ${sample.name}.ct
+      """
 }

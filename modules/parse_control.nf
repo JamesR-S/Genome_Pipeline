@@ -1,12 +1,12 @@
 #!/usr/bin/env groovy
+// modules/parse_control.nf
 
 def parse_control( controlFile ) {
-
-    def samples = []      // each sample: [name, platform, flowcell, fastq1, fastq2]
-    def families = []     // each family: list of sample names
-    def trios = []        // each trio: [proband, father, mother]
-    def maleSamples = []  // list of male sample names
-    def femaleSamples = []// list of female sample names
+    def samples = []      // Each sample: [name, platform, flowcell, fastq1, fastq2]
+    def families = []     // Each family is a list of sample names
+    def trios = []        // Each trio: [proband, father, mother]
+    def maleSamples = []  // (Optional) List of male sample names
+    def femaleSamples = []// (Optional) List of female sample names
 
     controlFile.eachLine { line ->
         line = line.trim()
