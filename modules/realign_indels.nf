@@ -1,28 +1,28 @@
 #!/usr/bin/env nextflow
-process realignIndels {
-    tag "${sampleName}"
+process INDEL_REALIGN {
+    tag "${id}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      tuple val(sampleName), file(dedupBam), file(dedupBai)
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(dedupBam), file(dedupBai)
     output:
-      tuple val(sampleName), file("${sampleName}_realigned.bam"), file("${sampleName}_realigned.bai")
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.bam"), file("${id}.bai")
     script:
       """
-      echo "Running GATK indel realignment for sample ${sampleName}"
+      echo "Running GATK indel realignment for sample ${id}"
       # Create realignment intervals
       java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
       -T RealignerTargetCreator \
       -R ${params.referenceFasta} \
       -I ${dedupBam} \
-      -o ${sampleName}.intervals \
+      -o ${id}.intervals \
       -known ${params.goldStandardIndels}
       # Realign indels
       java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
       -T IndelRealigner \
       -R ${params.referenceFasta} \
       -I ${dedupBam} \
-      -targetIntervals ${sampleName}.intervals \
-      -o ${sampleName}_realigned.bam \
+      -targetIntervals ${id}.intervals \
+      -o ${id}_realigned.bam \
       -known ${params.goldStandardIndels} \
       --maxReadsInMemory 100000000 --maxReadsForRealignment 600000
       """

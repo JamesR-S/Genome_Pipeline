@@ -4,6 +4,9 @@ nextflow.enable.dsl=2
 include { CONTROL_PARSER } from './modules/parse_control.nf'
 include { BWA_MEM } from './modules/bwa_mem.nf'
 include { MERGE_SAMS } from './modules/merge_sam.nf'
+include { FIXMATE } from './modules/fix_mate.nf'
+include { MARKDUP } from './modules/mark_duplicates.nf'
+include { INDEL_REALIGN } from './modules/realign_indels.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -59,6 +62,13 @@ ch_control = file(params.control)
         .set  { ch_raw_sams }
 
   MERGE_SAMS (ch_raw_sams)
-  .set  { ch_mi_sams }
+        .set  { ch_mi_sams }
 
+  FIXMATE (ch_mi_sams)
+        .set  { ch_fixmate }
+  
+  MARKDUP (ch_fixmate)
+        .set  { ch_markdup }
+  INDEL_REALIGN (ch_markdup)
+        .set  { ch_final_bam }  
 }

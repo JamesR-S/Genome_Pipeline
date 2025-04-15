@@ -1,18 +1,18 @@
 #!/usr/bin/env nextflow
-process markDuplicates {
-    tag "${sampleName}"
+process MARKDUP {
+    tag "${id}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      tuple val(sampleName), file(fixmateBam), file(fixmateBai)
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(fixmateBam), file(fixmateBai)
     output:
-      tuple val(sampleName), file("${sampleName}_dedup.bam"), file("${sampleName}_dedup.bai")
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}_dedup.bam"), file("${id}_dedup.bai")
     script:
       """
-      echo "Running Picard MarkDuplicates for sample ${sampleName}"
+      echo "Running Picard MarkDuplicates for sample ${id}"
       java -jar ${params.picardJar} MarkDuplicates \
       I=${fixmateBam} \
-      O=${sampleName}_dedup.bam \
-      METRICS_FILE=${sampleName}.metrics \
+      O=${id}_dedup.bam \
+      METRICS_FILE=${id}.metrics \
       REMOVE_DUPLICATES=true \
       CREATE_INDEX=true \
       VALIDATION_STRINGENCY=SILENT \
