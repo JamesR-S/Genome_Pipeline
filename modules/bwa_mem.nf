@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
-process bwaMem {
-    module = 'binutils/2.39-GCCcore-12.2.0'
+process BWA_MEM {
     cpus = 16
     tag "${id}"
     publishDir "r03_assembly", mode: 'copy'

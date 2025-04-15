@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-process indexMergeSamFiles {
+process MERGE_SAMS {
     module = 'SAMtools/1.17-GCC-12.2.0'
     tag "${sampleName}"
     publishDir "r03_assembly", mode: 'copy'
