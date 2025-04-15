@@ -3,7 +3,7 @@ process kevlarCount {
     tag "${sample.name}"
     publishDir "r03_kevlar", mode: 'copy'
     input:
-      val sample
+      tuple val(sample), file(checkFile)
     output:
       tuple val(sample.name), file("${sample.name}.ct")
     script:

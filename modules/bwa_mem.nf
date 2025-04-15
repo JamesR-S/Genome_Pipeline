@@ -1,15 +1,17 @@
 #!/usr/bin/env nextflow
 process bwaMem {
-    tag "${sample.name}"
+    module = 'binutils/2.39-GCCcore-12.2.0'
+    cpus = 16
+    tag "${id}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      val sample
+      tuple val(id), val(platform), val(sex), val(family), val(trio), val(flowcell), val(laneCount), val(famSampleCount), val(fastqFiles)
     output:
-      tuple val(sample.name), file("${sample.name}.sam")
+      tuple val(id), val(sex), val(family), val(trio), val(laneCount), val(famSampleCount),file("${id}.sam")
     script:
       """
-      echo "Running bwa mem for sample ${sample.name}"
-      ${params.bwa} mem -t 16 -M -R "@RG\\tID:${sample.flowcell}\\tPL:${sample.platform}\\tSM:${sample.name}\\tLB:${sample.name}_${sample.flowcell}" \
-      ${params.referenceFasta} fastq/${sample.fastq1} fastq/${sample.fastq2} > ${sample.name}.sam
+      echo "Running bwa mem for sample ${id}"
+      ${params.bwa} mem -t 16 -M -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
+         ${params.referenceFasta} ${fastqFiles.R1} ${fastqFiles.R2} > ${id}_${flowcell}.sam
       """
 }

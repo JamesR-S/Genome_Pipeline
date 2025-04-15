@@ -3,9 +3,9 @@ process markDuplicates {
     tag "${sampleName}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      tuple val(sampleName), file(fixmateBam)
+      tuple val(sampleName), file(fixmateBam), file(fixmateBai)
     output:
-      tuple val(sampleName), file("${sampleName}_dedup.bam")
+      tuple val(sampleName), file("${sampleName}_dedup.bam"), file("${sampleName}_dedup.bai")
     script:
       """
       echo "Running Picard MarkDuplicates for sample ${sampleName}"

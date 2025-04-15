@@ -3,12 +3,15 @@ process checkFastq {
     tag "${sample.name}"
     publishDir "r03_metrics", mode: 'copy'
     input:
+      // Accept a sample map
       val sample
     output:
-      tuple val(sample.name), file("${sample.name}_checkFastq.txt")
+      // Output a tuple: the sample map and the QC file.
+      tuple val(sample), file("${sample.name}${sample.lane ?: ''}_checkFastq.txt")
     script:
-      """
-      echo "Running CheckFastq for sample ${sample.name}"
-      java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq fastq/${sample.fastq1} fastq/${sample.fastq2} > ${sample.name}_checkFastq.txt
-      """
+    """
+    echo "Running CheckFastq for sample ${sample.name} ${sample.lane ? "(${sample.lane})" : ""}"
+    # Suppose the CheckFastq tool prints the total number of reads into the QC file.
+    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq fastq/\${sample.fastq1} fastq/\${sample.fastq2} > ${sample.name}${sample.lane ?: ''}_checkFastq.txt
+    """
 }

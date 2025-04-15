@@ -3,7 +3,7 @@ process cleanCallContamination {
     tag "${sample.name}"
     publishDir "r03_metrics", mode: 'copy'
     input:
-      tuple val(sample.name), file(bam)
+      tuple val(sample.name), file(bam), file(bai)
     output:
       tuple val(sample.name), file("${sample.name}_cleanCall.csv")
     script:
@@ -17,7 +17,7 @@ process cleanCallContaminationSmall {
     tag "${sample.name}"
     publishDir "r03_metrics", mode: 'copy'
     input:
-      tuple val(sample.name), file(bam)
+      tuple val(sample.name), file(bam), file(bai)
     output:
       tuple val(sample.name), file("${sample.name}_cleanCall_small.csv")
     script:

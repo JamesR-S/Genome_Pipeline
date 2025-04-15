@@ -3,9 +3,9 @@ process realignIndels {
     tag "${sampleName}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      tuple val(sampleName), file(dedupBam)
+      tuple val(sampleName), file(dedupBam), file(dedupBai)
     output:
-      tuple val(sampleName), file("${sampleName}_realigned.bam")
+      tuple val(sampleName), file("${sampleName}_realigned.bam"), file("${sampleName}_realigned.bai")
     script:
       """
       echo "Running GATK indel realignment for sample ${sampleName}"
