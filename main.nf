@@ -48,13 +48,20 @@ ch_control = file(params.control)
 
   BWA_MEM (ch_parsed)
         .flatMap { row ->
-        tuple(
-          groupKey(row.id, row.laneCount),
-          row
-        )
+            def (id, sex, family, trio, laneCount, famSampleCount, fastqFiles) = row
+            tuple(
+              groupKey(id, laneCount),
+              row
+            )
         }
         .groupTuple() 
-        .map { key, row -> tuple(key.getGroupTarget(), row) }
+        .map { key, rows ->
+          def newRows = rows.collect { singleRow -> 
+              singleRow
+          }
+
+          tuple(key.getGroupTarget(), newRows)
+        }
         .set  { ch_sams }
 
   MERGE_SAMS (ch_sams)

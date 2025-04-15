@@ -6,7 +6,7 @@ process BWA_MEM {
     input:
       tuple val(id), val(platform), val(sex), val(family), val(trio), val(flowcell), val(laneCount), val(famSampleCount), val(fastqFiles)
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(laneCount), val(famSampleCount),file("${id}.sam")
+      tuple val(id), val(sex), val(family), val(trio), val(laneCount), val(famSampleCount),file("${id}_${flowcell}.sam")
     script:
       """
       echo "Running bwa mem for sample ${id}"
