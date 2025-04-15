@@ -1,6 +1,6 @@
 process CONTROL_PARSER {
     tag "$controlFile"
-
+    executor: 'local'
     input:
       path controlFile
 

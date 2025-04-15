@@ -25,8 +25,8 @@ def parseLineToTuple(String line) {
 
     // Build the list of file() objects
     def fastqFiles = [
-       R1 = file("fastq/"+map.fastq1),
-       R2 = file("fastq/"+map.fastq2)
+       R1: file("fastq/"+map.fastq1),
+       R2: file("fastq/"+map.fastq2)
     ]
     return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, fastqFiles ]
 }
@@ -46,8 +46,7 @@ ch_control = file(params.control)
         .map   { parseLineToTuple(it) }
         .set  { ch_parsed }
 
-  BWA-MEM (ch_parsed)
-        .out
+  BWA_MEM (ch_parsed)
         .flatMap { row ->
         tuple(
           groupKey(row.id, row.laneCount),
@@ -58,5 +57,5 @@ ch_control = file(params.control)
         .map { key, row -> tuple(key.getGroupTarget(), row) }
         .set  { ch_sams }
 
-  MERGE-SAMS (ch_sams)
+  MERGE_SAMS (ch_sams)
 }
