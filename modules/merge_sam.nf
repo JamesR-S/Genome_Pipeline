@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 process MERGE_SAMS {
-    module = 'SAMtools/1.17-GCC-12.2.0'
+    module 'SAMtools/1.17-GCC-12.2.0'
     tag "${meta.id}"
     publishDir "r03_assembly", mode: 'copy'
     input:
@@ -15,7 +15,7 @@ process MERGE_SAMS {
     num_files=\$(echo \${sam_files[@]} | wc -w)
     if [ \$num_files -gt 1 ]; then
        inputs=""
-       for f in \${sam_files[@]; do
+       for f in \${sam_files[@]}; do
            inputs="\${inputs} I=\$f"
        done
        java -jar ${params.picardJar} MergeSamFiles \${inputs} \
@@ -24,6 +24,6 @@ process MERGE_SAMS {
          # If only one file is present, simply copy it to the output name.
          cp ${sams} ${meta.id}.sam
          samtools index ${meta.id}.sam
-      fi
-      """
+    fi
+    """
 }

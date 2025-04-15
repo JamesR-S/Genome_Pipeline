@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 process BWA_MEM {
-    cpus = 16
+    cpus 16
     tag "${id}"
     publishDir "r03_assembly", mode: 'copy'
     input:

@@ -1,6 +1,6 @@
 process CONTROL_PARSER {
     tag "$controlFile"
-    executor = 'local'
+    executor 'local'
     input:
       path controlFile
 
@@ -59,15 +59,15 @@ with open("${controlFile}", "r") as fh:
 # So familyDict["FAM1"] = {"WG1744","WG1745","WG1746"}
 familyDict = {}
 for famLine in families:
-    famName = famLine[0]
-    samples = famLine[1:]
+    famName = ",".join(famLine)
+    samples = famLine[0:]
     familyDict.setdefault(famName, set()).update(samples)
 
 # Build a dictionary: trio -> set of samples
 trioDict = {}
 for triLine in trios:
-    trioName = triLine[0]
-    samples  = triLine[1:]
+    trioName = ",".join(triLine[0])
+    samples  = triLine[0:]
     trioDict.setdefault(trioName, set()).update(samples)
 
 # Build a dictionary: sample -> count of FASTQ records (lanes)

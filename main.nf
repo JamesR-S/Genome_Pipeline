@@ -20,8 +20,8 @@ def parseLineToTuple(String line) {
     def id = map.sample   // or 'sample'
     def platform = map.platform
     def sex = map.sex
-    def family = map.family
-    def trio = map.trio
+    def family = map.family != 'NA' ? map.family.split(',') : 'NA'
+    def trio = map.trio != 'NA' ? map.trio.split(',') : 'NA'
     def flowcell = map.flowcell
     def laneCount = map.sampleLaneCount.toInteger()
     def famSampleCount = map.familySampleCount.toInteger()
@@ -38,7 +38,7 @@ params.control = file(params.control ?: 'control')
 
 workflow {
 
-ch_control = file(params.control)
+  ch_control = file(params.control)
 
 
   CONTROL_PARSER (ch_control)
@@ -57,8 +57,7 @@ ch_control = file(params.control)
             tuple(gKey, sam_file)
         }
         .groupTuple() 
-        .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) } 
-        .view()
+        .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) }
         .set  { ch_raw_sams }
 
   MERGE_SAMS (ch_raw_sams)
@@ -69,6 +68,18 @@ ch_control = file(params.control)
   
   MARKDUP (ch_fixmate)
         .set  { ch_markdup }
+
   INDEL_REALIGN (ch_markdup)
         .set  { ch_final_bam }  
+
+  ch_final_bam
+    .filter { row -> row.trio != 'NA' }
+    .map { row ->
+            def (id, sex, family, trio, famSampleCount, bam_file ,bai_file) = row
+            def key = [sex:sex, family:family, trio:trio, famSampleCount:famSampleCount]        
+            tuple(key, [id:id, bam:bam_file, bai:bai_file])
+        }
+    .groupTuple()
+    .map { key, bam_bai -> tuple(key.getGroupTarget(), bam_bai) }
+        .set  { ch_trios }
 }
