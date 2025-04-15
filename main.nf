@@ -47,22 +47,18 @@ ch_control = file(params.control)
         .set  { ch_parsed }
 
   BWA_MEM (ch_parsed)
-        .flatMap { row ->
-            def (id, sex, family, trio, laneCount, famSampleCount, fastqFiles) = row
-            tuple(
-              groupKey(id, laneCount),
-              row
-            )
+        .map { row ->
+            def (id, sex, family, trio, laneCount, famSampleCount, sam_file) = row
+            def key = [id:id, sex:sex, family:family, trio:trio, famSampleCount:famSampleCount]
+            def gKey = groupKey(key, laneCount)          
+            tuple(gKey, sam_file)
         }
         .groupTuple() 
-        .map { key, rows ->
-          def newRows = rows.collect { singleRow -> 
-              singleRow
-          }
+        .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) } 
+        .view()
+        .set  { ch_raw_sams }
 
-          tuple(key.getGroupTarget(), newRows)
-        }
-        .set  { ch_sams }
+  MERGE_SAMS (ch_raw_sams)
+  .set  { ch_mi_sams }
 
-  MERGE_SAMS (ch_sams)
 }

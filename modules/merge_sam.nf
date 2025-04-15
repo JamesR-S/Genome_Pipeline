@@ -1,16 +1,15 @@
 #!/usr/bin/env nextflow
 process MERGE_SAMS {
     module = 'SAMtools/1.17-GCC-12.2.0'
-    tag "${sampleName}"
+    tag "${meta.id}"
     publishDir "r03_assembly", mode: 'copy'
     input:
-      // Expect a tuple: sampleName and a list of SAM files
-      tuple val(id), val(sex), val(family), val(trio), val(laneCount), val(famSampleCount), file(sams)
+      tuple val(meta), file(sams)
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.sam"), file("${id}.sai")
+      tuple val(meta.id), val(meta.sex), val(meta.family), val(meta.trio), val(meta.famSampleCount), file("${meta.id}.sam"), file("${meta.id}.sai")
     script:
     """
-    echo "Merging SAM files for sample ${sampleName}"
+    echo "Merging SAM files for sample ${meta.id}"
     # Count number of SAM files. Nextflow passes the list in a way that bash can see multiple paths.
     sam_files=( ${sams.join(" ")} )
     num_files=\$(echo \${sam_files[@]} | wc -w)
@@ -20,11 +19,11 @@ process MERGE_SAMS {
            inputs="\${inputs} I=\$f"
        done
        java -jar ${params.picardJar} MergeSamFiles \${inputs} \
-          O=${id}.sam SO=coordinate CREATE_INDEX=true TMP_DIR=${params.tmpDir}
+          O=${meta.id}.sam SO=coordinate CREATE_INDEX=true TMP_DIR=${params.tmpDir}
     else
          # If only one file is present, simply copy it to the output name.
-         cp ${sams} ${id}.sam
-         samtools index ${id}.sam
+         cp ${sams} ${meta.id}.sam
+         samtools index ${meta.id}.sam
       fi
       """
 }
