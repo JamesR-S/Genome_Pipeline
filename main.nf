@@ -14,6 +14,7 @@ include { SCRAMBLE_CLUST_IDENT } from './modules/scramble.nf'
 include { SPLIT_CLUST_FILE } from './modules/scramble.nf'
 include { SCRAMBLE_CLUST_ANALYSIS } from './modules/scramble.nf'
 include { CAT_CLUST_FILE } from './modules/scramble.nf'
+include { DEEP_VARIANT } from './modules/deep_variant.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
