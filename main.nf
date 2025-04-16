@@ -6,7 +6,6 @@ include { BWA_MEM } from './modules/bwa_mem.nf'
 include { MERGE_SAMS } from './modules/merge_sam.nf'
 include { FIXMATE } from './modules/fix_mate.nf'
 include { MARKDUP } from './modules/mark_duplicates.nf'
-include { INDEL_REALIGN } from './modules/realign_indels.nf'
 include { CONTAM } from './modules/clean_call_contamination.nf'
 include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
@@ -77,9 +76,6 @@ workflow {
         .set  { ch_fixmate }
   
   MARKDUP (ch_fixmate)
-        .set  { ch_markdup }
-
-  INDEL_REALIGN (ch_markdup)
         .set  { ch_final_bam }
 
   EXPANSION_HUNTER_DE_NOVO (ch_final_bam)

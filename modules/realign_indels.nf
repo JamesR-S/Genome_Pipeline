@@ -11,14 +11,14 @@ process INDEL_REALIGN {
       echo "Running GATK indel realignment for sample ${id}"
       # Create realignment intervals
       java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
-      -T RealignerTargetCreator \
+      RealignerTargetCreator \
       -R ${params.referenceFasta} \
       -I ${dedupBam} \
       -o ${id}.intervals \
       -known ${params.goldStandardIndels}
       # Realign indels
       java -Djava.io.tmpdir=${params.tmpDir} -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -jar ${params.gatkJar} \
-      -T IndelRealigner \
+      IndelRealigner \
       -R ${params.referenceFasta} \
       -I ${dedupBam} \
       -targetIntervals ${id}.intervals \
