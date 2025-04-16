@@ -8,6 +8,8 @@ process MARKDUP {
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}_dedup.bam"), file("${id}_dedup.bai")
     script:
       """
+      mkdir tmp
+
       echo "Running Picard MarkDuplicates for sample ${id}"
       java -jar ${params.picardJar} MarkDuplicates \
       I=${fixmateBam} \
@@ -16,6 +18,6 @@ process MARKDUP {
       REMOVE_DUPLICATES=true \
       CREATE_INDEX=true \
       VALIDATION_STRINGENCY=SILENT \
-      TMP_DIR=${params.tmpDir}
+      TMP_DIR=tmp
       """
 }

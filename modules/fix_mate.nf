@@ -9,11 +9,14 @@ process FIXMATE {
     script:
       """
       echo "Running Picard FixMateInformation for sample ${id}"
+
+      mkdir tmp
+
       java -Xmx4g -jar ${params.picardJar} FixMateInformation \
       I=${bam} \
       O=${id}_fixmate.bam \
       VALIDATION_STRINGENCY=SILENT \
       CREATE_INDEX=true \
-      TMP_DIR=${params.tmpDir}
+      TMP_DIR=tmp
       """
 }

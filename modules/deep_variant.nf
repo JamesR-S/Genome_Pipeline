@@ -15,7 +15,8 @@ process DEEP_VARIANT {
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.g.vcf.gz"), file("${id}.vcf.gz")
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.g.vcf.gz"), file("${id}.g.vcf.gz.csi"), emit: gvcf 
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.vcf.gz"), file("${id}.vcf.gz.csi"), emit: vcf
     script:
       """
       /opt/deepvariant/bin/run_deepvariant \
@@ -26,5 +27,8 @@ process DEEP_VARIANT {
         --output_vcf=${id}.vcf.gz \
         --num_shards=16
         --vcf_stats_report=true
+
+        bcftools index ${id}.g.vcf.gz
+        bcftools index ${id}.vcf.gz
       """
 }

@@ -15,6 +15,7 @@ include { SPLIT_CLUST_FILE } from './modules/scramble.nf'
 include { SCRAMBLE_CLUST_ANALYSIS } from './modules/scramble.nf'
 include { CAT_CLUST_FILE } from './modules/scramble.nf'
 include { DEEP_VARIANT } from './modules/deep_variant.nf'
+include { GLNEXUS } from './modules/glnexus.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -118,6 +119,36 @@ workflow {
         }
     .groupTuple(size: 3)
     .map { key, bam_bai -> tuple(key.getGroupTarget(), bam_bai)}  
-        .view() 
-        .set  { ch_trios }
+    .view()
+
+  DEEP_VARIANT (ch_final_bam)
+
+  DEEP_VARIANT.out.vcf.set { ch_vcf }
+  DEEP_VARIANT.out.gvcf
+    .filter { row -> row[4] >= 2 }
+    .map {row ->
+            def (id, sex, family, famSampleCount, gvcf, gvcfcsi) = row
+            def key = [sex:sex, family:family, famSampleCount:famSampleCount]
+            def gKey = groupKey(key, famSampleCount)          
+            tuple(gKey, [id:id, gvcf:gvcf, gvcfcsi:gvcfcsi])
+        }
+    .groupTuple() 
+    .map { key, gvcfs -> 
+            def meta = key.getGroupTarget()
+            def orderedIds = meta.family.split('-')
+            def idToIndex = orderedIds.collectEntries { famId ->
+            [(famId): orderedIds.indexOf(famId)]
+            }
+            def sortedGroup = gvcfs.sort { rec ->
+            idToIndex[rec.id]
+            }
+            def sortedIds      = sortedGroup*.id        
+            def sortedGvcfs    = sortedGroup*.gvcf
+            def sortedGvcfCsis = sortedGroup*.gvcfcsi
+            tuple(sortedIds, meta.sex,meta.family,meta.famSampleCount, sortedGvcfs, sortedGvcfCsis)
+            }
+    .set  { family_gvcf }
+
+    GLNEXUS (family_gvcf)
+
 }
