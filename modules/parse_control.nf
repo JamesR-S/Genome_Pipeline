@@ -59,14 +59,14 @@ with open("${controlFile}", "r") as fh:
 # So familyDict["FAM1"] = {"WG1744","WG1745","WG1746"}
 familyDict = {}
 for famLine in families:
-    famName = ",".join(famLine)
+    famName = "-".join(famLine)
     samples = famLine[0:]
     familyDict.setdefault(famName, set()).update(samples)
 
 # Build a dictionary: trio -> set of samples
 trioDict = {}
 for triLine in trios:
-    trioName = ",".join(triLine[0])
+    trioName = "-".join(triLine)
     samples  = triLine[0:]
     trioDict.setdefault(trioName, set()).update(samples)
 

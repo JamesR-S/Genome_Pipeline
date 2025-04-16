@@ -7,6 +7,13 @@ include { MERGE_SAMS } from './modules/merge_sam.nf'
 include { FIXMATE } from './modules/fix_mate.nf'
 include { MARKDUP } from './modules/mark_duplicates.nf'
 include { INDEL_REALIGN } from './modules/realign_indels.nf'
+include { CONTAM } from './modules/clean_call_contamination.nf'
+include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
+include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
+include { SCRAMBLE_CLUST_IDENT } from './modules/scramble.nf'
+include { SPLIT_CLUST_FILE } from './modules/scramble.nf'
+include { SCRAMBLE_CLUST_ANALYSIS } from './modules/scramble.nf'
+include { CAT_CLUST_FILE } from './modules/scramble.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -20,8 +27,8 @@ def parseLineToTuple(String line) {
     def id = map.sample   // or 'sample'
     def platform = map.platform
     def sex = map.sex
-    def family = map.family != 'NA' ? map.family.split(',') : 'NA'
-    def trio = map.trio != 'NA' ? map.trio.split(',') : 'NA'
+    def family = map.family
+    def trio = map.trio
     def flowcell = map.flowcell
     def laneCount = map.sampleLaneCount.toInteger()
     def famSampleCount = map.familySampleCount.toInteger()
@@ -58,19 +65,48 @@ workflow {
         }
         .groupTuple() 
         .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) }
+        .view()
         .set  { ch_raw_sams }
 
   MERGE_SAMS (ch_raw_sams)
-        .set  { ch_mi_sams }
+        .set  { ch_mi_bams }
 
-  FIXMATE (ch_mi_sams)
+  FIXMATE (ch_mi_bams)
         .set  { ch_fixmate }
   
   MARKDUP (ch_fixmate)
         .set  { ch_markdup }
 
   INDEL_REALIGN (ch_markdup)
-        .set  { ch_final_bam }  
+        .set  { ch_final_bam }
+
+  EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
+
+  CONTAM (ch_final_bam)  
+
+  CONTAM_SMALL (ch_final_bam)
+
+  SCRAMBLE_CLUST_IDENT (ch_final_bam)
+         .set  { ch_scramble_ident }
+
+  SPLIT_CLUST_FILE (ch_scramble_ident)
+         .flatMap { sampleName, chunkFiles ->
+           chunkFiles.sort().indexed().collect { idx, chunkFile ->
+            [ sampleName, idx, chunkFile ]
+            }
+         }
+         .set { ch_split_chunks }
+
+  SCRAMBLE_CLUST_ANALYSIS (ch_split_chunks)
+    .groupTuple(size: 5)
+    .map { sampleName, chunkList ->
+        def sorted = chunkList.sort { it[0] } 
+        def chunkFiles = sorted.collect { it[1] } 
+        [ sampleName, chunkFiles ]
+    }
+    .set { ch_grouped_chunks }
+
+  CAT_CLUST_FILE (ch_grouped_chunks)
 
   ch_final_bam
     .filter { row -> row.trio != 'NA' }
@@ -79,7 +115,8 @@ workflow {
             def key = [sex:sex, family:family, trio:trio, famSampleCount:famSampleCount]        
             tuple(key, [id:id, bam:bam_file, bai:bai_file])
         }
-    .groupTuple()
-    .map { key, bam_bai -> tuple(key.getGroupTarget(), bam_bai) }
+    .groupTuple(size: 3)
+    .map { key, bam_bai -> tuple(key.getGroupTarget(), bam_bai)}  
+        .view() 
         .set  { ch_trios }
 }

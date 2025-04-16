@@ -6,7 +6,7 @@ process MERGE_SAMS {
     input:
       tuple val(meta), file(sams)
     output:
-      tuple val(meta.id), val(meta.sex), val(meta.family), val(meta.trio), val(meta.famSampleCount), file("${meta.id}.sam"), file("${meta.id}.sai")
+      tuple val(meta.id), val(meta.sex), val(meta.family), val(meta.trio), val(meta.famSampleCount), file("${meta.id}_sorted.bam"), file("${meta.id}_sorted.bai")
     script:
     """
     echo "Merging SAM files for sample ${meta.id}"
@@ -19,11 +19,13 @@ process MERGE_SAMS {
            inputs="\${inputs} I=\$f"
        done
        java -jar ${params.picardJar} MergeSamFiles \${inputs} \
-          O=${meta.id}.sam SO=coordinate CREATE_INDEX=true TMP_DIR=${params.tmpDir}
+          O=${meta.id}_tmp.sam SO=coordinate TMP_DIR=${params.tmpDir}
+       samtools sort ${meta.id}_tmp.sam > ${meta.id}_sorted.bam
+       samtools index ${meta.id}_sorted.bam > ${meta.id}_sorted.bai
     else
          # If only one file is present, simply copy it to the output name.
-         cp ${sams} ${meta.id}.sam
-         samtools index ${meta.id}.sam
+        samtools sort ${sams} > ${meta.id}_sorted.bam
+         samtools index ${meta.id}_sorted.bam > ${meta.id}_sorted.bai
     fi
     """
 }
