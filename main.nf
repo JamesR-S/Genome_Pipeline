@@ -15,6 +15,8 @@ include { SCRAMBLE_CLUST_ANALYSIS } from './modules/scramble.nf'
 include { CAT_CLUST_FILE } from './modules/scramble.nf'
 include { DEEP_VARIANT } from './modules/deep_variant.nf'
 include { GLNEXUS } from './modules/glnexus.nf'
+include { DEEP_TRIO } from './modules/deep_trio.nf'
+include { DEEP_TRIO_DENOVO } from './modules/deep_trio.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -110,12 +112,32 @@ workflow {
     .filter { row -> row.trio != 'NA' }
     .map { row ->
             def (id, sex, family, trio, famSampleCount, bam_file ,bai_file) = row
-            def key = [sex:sex, family:family, trio:trio, famSampleCount:famSampleCount]        
-            tuple(key, [id:id, bam:bam_file, bai:bai_file])
+            def key = [family:family, trio:trio, famSampleCount:famSampleCount]        
+            tuple(key, [id:id,sex:sex, bam:bam_file, bai:bai_file])
         }
     .groupTuple(size: 3)
-    .map { key, bam_bai -> tuple(key.getGroupTarget(), bam_bai)}  
+    .map { key, bam_bai -> 
+            def meta = key.getGroupTarget()
+            def orderedIds = meta.trio.split('-')
+            def idToIndex = orderedIds.collectEntries { famId ->
+            [(famId): orderedIds.indexOf(famId)]
+            }
+            def sortedGroup = bam_bai.sort { rec ->
+            idToIndex[rec.id]
+            }
+            def sortedIds  = sortedGroup*.id
+            def sortedSex      = sortedGroup*.sex         
+            def sortedbams = sortedGroup*.bam_file
+            def sortedbais = sortedGroup*.bai_file
+            tuple(sortedIds, sortedSex,meta.trio.split("-"), sortedbams, sortedbais)
+            }  
     .view()
+    .set { ch_trios_bam }
+
+  DEEP_TRIO (ch_trios_bam)
+    .set{ ch_deep_trios }
+
+  DEEP_TRIO_DENOVO (ch_deep_trios)
 
   DEEP_VARIANT (ch_final_bam)
 
@@ -124,9 +146,9 @@ workflow {
     .filter { row -> row[4] >= 2 }
     .map {row ->
             def (id, sex, family, famSampleCount, gvcf, gvcfcsi) = row
-            def key = [sex:sex, family:family, famSampleCount:famSampleCount]
+            def key = [family:family, famSampleCount:famSampleCount]
             def gKey = groupKey(key, famSampleCount)          
-            tuple(gKey, [id:id, gvcf:gvcf, gvcfcsi:gvcfcsi])
+            tuple(gKey, [id:id,sex:sex, gvcf:gvcf, gvcfcsi:gvcfcsi])
         }
     .groupTuple() 
     .map { key, gvcfs -> 
@@ -138,10 +160,11 @@ workflow {
             def sortedGroup = gvcfs.sort { rec ->
             idToIndex[rec.id]
             }
-            def sortedIds      = sortedGroup*.id        
+            def sortedIds      = sortedGroup*.id
+            def sortedSex      = sortedGroup*.sex        
             def sortedGvcfs    = sortedGroup*.gvcf
             def sortedGvcfCsis = sortedGroup*.gvcfcsi
-            tuple(sortedIds, meta.sex,meta.family,meta.famSampleCount, sortedGvcfs, sortedGvcfCsis)
+            tuple(sortedIds, sortedSex,meta.family,meta.famSampleCount, sortedGvcfs, sortedGvcfCsis)
             }
     .set  { family_gvcf }
 
