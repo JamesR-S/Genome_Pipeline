@@ -6,13 +6,14 @@ process DEEP_TRIO {
     
     input:
       tuple val(id), val(sex), val(trio_ids), file(bam), file(bai)
+      file(Fasta)
     output:
       tuple val(id), val(sex), val(trio_ids), [file("${trio_ids[0]}.vcf.gz"),file("${trio_ids[1]}.vcf.gz"),file("${trio_ids[2]}.vcf.gz")], [file("${trio_ids[0]}.vcf.gz.csi"),file("${trio_ids[1]}.vcf.gz.csi"),file("${trio_ids[2]}.vcf.gz.csi")]
     script:
       """
       /opt/deepvariant/bin/deeptrio/run_deeptrio \
         --model_type=WGS \
-        --ref=${params.referenceFasta} \
+        --ref=${Fasta} \
         --reads_child=${bam[0]} \
         --reads_parent1=${bam[1]} \
         --reads_parent2=${bam[2]} \

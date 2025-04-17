@@ -109,7 +109,7 @@ workflow {
   CAT_CLUST_FILE (ch_grouped_chunks)
 
   ch_final_bam
-    .filter { row -> row.trio != 'NA' }
+    .filter { row -> row[3] != 'NA' }
     .map { row ->
             def (id, sex, family, trio, famSampleCount, bam_file ,bai_file) = row
             def key = [family:family, trio:trio, famSampleCount:famSampleCount]        
@@ -133,13 +133,14 @@ workflow {
             }  
     .view()
     .set { ch_trios_bam }
+  ch_ref_fasta = Channel.value( params.referenceFasta )
 
-  DEEP_TRIO (ch_trios_bam)
+  DEEP_TRIO (ch_trios_bam, ch_ref_fasta)
     .set{ ch_deep_trios }
 
   DEEP_TRIO_DENOVO (ch_deep_trios)
 
-  DEEP_VARIANT (ch_final_bam)
+  DEEP_VARIANT (ch_final_bam, ch_ref_fasta)
 
   DEEP_VARIANT.out.vcf.set { ch_vcf }
   DEEP_VARIANT.out.gvcf

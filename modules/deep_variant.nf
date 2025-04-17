@@ -14,6 +14,7 @@ process DEEP_VARIANT {
     
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
+      file(Fasta)
     output:
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.g.vcf.gz"), file("${id}.g.vcf.gz.csi"), emit: gvcf 
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.vcf.gz"), file("${id}.vcf.gz.csi"), emit: vcf
@@ -21,7 +22,7 @@ process DEEP_VARIANT {
       """
       /opt/deepvariant/bin/run_deepvariant \
         --model_type=WGS \
-        --ref=${params.referenceFasta} \
+        --ref=${Fasta} \
         --reads=${bam} \
         --output_gvcf=${id}.g.vcf.gz \
         --output_vcf=${id}.vcf.gz \
