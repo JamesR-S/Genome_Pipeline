@@ -8,7 +8,7 @@ process DEEP_TRIO {
       tuple val(id), val(sex), val(trio_ids), file(bam), file(bai)
       file(Fasta)
     output:
-      tuple val(id), val(sex), val(trio_ids), [file("*_proband.vcf.gz"),file("*_father.vcf.gz"),file("*_mother.vcf.gz")], [file("*_proband.vcf.gz.csi"),file("*_father.vcf.gz.csi"),file("*_mother.vcf.gz.csi")]
+      tuple val(id), val(sex), val(trio_ids), file("*_proband.vcf.gz"),file("*_father.vcf.gz"),file("*_mother.vcf.gz"), file("*_proband.vcf.gz.csi"),file("*_father.vcf.gz.csi"),file("*_mother.vcf.gz.csi")
     script:
       """
       /opt/deepvariant/bin/deeptrio/run_deeptrio \
@@ -38,14 +38,14 @@ process DEEP_TRIO {
 process DEEP_TRIO_DENOVO {
   tag { trio_ids.join('-') }
     input:
-    tuple val(id), val(sex), val(trio_ids), file(vcfs), file(vcfcsis)
+    tuple val(id), val(sex), val(trio_ids), file(proband_vcfs), file(father_vcfs), file(mother_vcfs), file(proband_vcfscis), file(father_vcfscis), file(mother_vcfscis)
     
     output:
     file("*_denovo.vcf.gz")
 
     script:
     """
-    ${params.rtgtools} vcfmerge ${vcfs[1]} ${vcfs[2]} ${vcfs[0]} \
+    ${params.rtgtools} vcfmerge ${father_vcfs} ${mother_vcfs} ${proband_vcfs} \
       --add-header "##PEDIGREE=<Child=${trio_ids[0]},Mother=${trio_ids[2]},Father=${trio_ids[1]}>" \
       --add-header "##SAMPLE<ID=${trio_ids[0]},Sex-${sex[0]}>" \
       --output ${trio_ids.join("-")}_trio.vcf.gz
