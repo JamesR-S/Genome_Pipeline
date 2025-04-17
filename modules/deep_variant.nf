@@ -3,7 +3,7 @@ process DEEP_VARIANT {
     container 'google/deepvariant:1.8.0'
     
     publishDir(
-        path: { "r03_vcfs" },
+        path: { "r04_vcfs" },
         pattern: "*.vcf.gz",
         mode: 'copy')
 

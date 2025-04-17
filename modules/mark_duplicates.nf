@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process MARKDUP {
     tag "${id}"
-    publishDir "r03_assembly", mode: 'copy'
+    publishDir "r04_assembly", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(fixmateBam), file(fixmateBai)
     output:

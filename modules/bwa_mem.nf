@@ -2,7 +2,7 @@
 process BWA_MEM {
     cpus 16
     tag "${id}"
-    publishDir "r03_assembly", mode: 'copy'
+    publishDir "r04_assembly", mode: 'copy'
     input:
       tuple val(id), val(platform), val(sex), val(family), val(trio), val(flowcell), val(laneCount), val(famSampleCount), val(fastqFiles)
     output:

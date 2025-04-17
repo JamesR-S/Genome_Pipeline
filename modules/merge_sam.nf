@@ -2,7 +2,7 @@
 process MERGE_SAMS {
     module 'SAMtools/1.17-GCC-12.2.0'
     tag "${meta.id}"
-    publishDir "r03_assembly", mode: 'copy'
+    publishDir "r04_assembly", mode: 'copy'
     input:
       tuple val(meta), file(sams)
     output:

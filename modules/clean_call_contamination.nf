@@ -2,7 +2,7 @@
 process CONTAM {
     tag "${id}"
     module 'SAMtools/1.17-GCC-12.2.0'
-    publishDir "r03_metrics", mode: 'copy'
+    publishDir "r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:
@@ -19,7 +19,7 @@ process CONTAM {
 process CONTAM_SMALL {
     tag "${id}"
     module 'SAMtools/1.17-GCC-12.2.0'
-    publishDir "r03_metrics", mode: 'copy'
+    publishDir "r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:

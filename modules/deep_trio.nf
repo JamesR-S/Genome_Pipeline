@@ -2,7 +2,7 @@ process DEEP_TRIO {
     tag { trio_ids.join('-') }
     container 'google/deepvariant:deeptrio-1.8.0'
     
-    publishDir "r03_deep_trio", mode: 'copy'
+    publishDir "r04_deep_trio", mode: 'copy'
     
     input:
       tuple val(id), val(sex), val(trio_ids), file(bam), file(bai)

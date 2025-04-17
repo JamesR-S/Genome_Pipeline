@@ -1,6 +1,6 @@
 process EXPANSION_HUNTER_DE_NOVO {
     tag "${id}"
-    publishDir "r03_expansionhunterdenovo", mode: 'copy'
+    publishDir "r04_expansionhunterdenovo", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:

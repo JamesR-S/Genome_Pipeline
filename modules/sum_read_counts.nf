@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process sumReadCounts {
     tag "${sample.name}"
-    publishDir "r03_metrics", mode: 'copy'
+    publishDir "r04_metrics", mode: 'copy'
     input:
       tuple val(sample), file(countFiles)
     output:

@@ -1,6 +1,6 @@
 process SCRAMBLE_CLUST_IDENT {
     tag "${id}"
-    publishDir "r03_scramble", mode: 'copy'
+    publishDir "r04_scramble", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:

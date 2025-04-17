@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process kevlarCount {
     tag "${sample.name}"
-    publishDir "r03_kevlar", mode: 'copy'
+    publishDir "r04_kevlar", mode: 'copy'
     input:
       tuple val(sample), file(checkFile)
     output:

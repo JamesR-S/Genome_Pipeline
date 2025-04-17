@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process checkFastq {
     tag "${sample.name}"
-    publishDir "r03_metrics", mode: 'copy'
+    publishDir "r04_metrics", mode: 'copy'
     input:
       // Accept a sample map
       val sample
