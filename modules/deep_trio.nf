@@ -1,5 +1,5 @@
 process DEEP_TRIO {
-    tag "${trio_ids.join("-")}"
+    tag { trio_ids.join('-') }
     container 'google/deepvariant:deeptrio-1.8.0'
     
     publishDir "r03_deep_trio", mode: 'copy'
@@ -8,7 +8,7 @@ process DEEP_TRIO {
       tuple val(id), val(sex), val(trio_ids), file(bam), file(bai)
       file(Fasta)
     output:
-      tuple val(id), val(sex), val(trio_ids), [file("${trio_ids[0]}.vcf.gz"),file("${trio_ids[1]}.vcf.gz"),file("${trio_ids[2]}.vcf.gz")], [file("${trio_ids[0]}.vcf.gz.csi"),file("${trio_ids[1]}.vcf.gz.csi"),file("${trio_ids[2]}.vcf.gz.csi")]
+      tuple val(id), val(sex), val(trio_ids), [file("*_proband.vcf.gz"),file("*_father.vcf.gz"),file("*_mother.vcf.gz")], [file("*_proband.vcf.gz.csi"),file("*_father.vcf.gz.csi"),file("*_mother.vcf.gz.csi")]
     script:
       """
       /opt/deepvariant/bin/deeptrio/run_deeptrio \
@@ -17,17 +17,17 @@ process DEEP_TRIO {
         --reads_child=${bam[0]} \
         --reads_parent1=${bam[1]} \
         --reads_parent2=${bam[2]} \
-        --output_vcf_child \$(basename ${bam[0]}).vcf.gz \
-        --output_vcf_parent1 \$(basename ${bam[1]}).vcf.gz \
-        --output_vcf_parent2 \$(basename ${bam[2]}).vcf.gz \
+        --output_vcf_child \$(basename ${bam[0]})_proband.vcf.gz \
+        --output_vcf_parent1 \$(basename ${bam[1]})_father.vcf.gz \
+        --output_vcf_parent2 \$(basename ${bam[2]})_mother.vcf.gz \
         --sample_name_child "\$(basename ${bam[0]})" \
         --sample_name_parent1 "\$(basename ${bam[1]})" \
         --sample_name_parent2 "\$(basename ${bam[2]})" \
-        --num_shards $(nproc)  \
+        --num_shards \$(nproc)  \
         --intermediate_results_dir intermediate_results_dir \
-        --output_gvcf_child \$(basename ${bam[0]}).g.vcf.gz \
-        --output_gvcf_parent1 \$(basename ${bam[1]}).g.vcf.gz \
-        --output_gvcf_parent2 \$(basename ${bam[2]}).g.vcf.gz
+        --output_gvcf_child \$(basename ${bam[0]})_proband.g.vcf.gz \
+        --output_gvcf_parent1 \$(basename ${bam[1]})_father.g.vcf.gz \
+        --output_gvcf_parent2 \$(basename ${bam[2]})_mother.g.vcf.gz
 
         bcftools index \$(basename ${bam[0]}).vcf.gz
         bcftools index \$(basename ${bam[1]}).vcf.gz
@@ -36,12 +36,12 @@ process DEEP_TRIO {
 }
 
 process DEEP_TRIO_DENOVO {
-  tag "${trio_ids.join("-")}"
+  tag { trio_ids.join('-') }
     input:
     tuple val(id), val(sex), val(trio_ids), file(vcfs), file(vcfcsis)
     
     output:
-    file("${trio_ids.join("-")}_denovo.vcf.gz")
+    file("*_denovo.vcf.gz")
 
     script:
     """
