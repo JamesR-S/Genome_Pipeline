@@ -20,12 +20,12 @@ process MERGE_SAMS {
        done
        java -jar ${params.picardJar} MergeSamFiles \${inputs} \
           O=${meta.id}_tmp.sam SO=coordinate TMP_DIR=${params.tmpDir}
-       samtools sort ${meta.id}_tmp.sam > ${meta.id}_sorted.bam
-       samtools index ${meta.id}_sorted.bam > ${meta.id}_sorted.bai
+       samtools sort -@ 16 ${meta.id}_tmp.sam > ${meta.id}_sorted.bam
+       samtools index -@ 16 ${meta.id}_sorted.bam > ${meta.id}_sorted.bai
     else
          # If only one file is present, simply copy it to the output name.
-        samtools sort ${sams} > ${meta.id}_sorted.bam
-         samtools index ${meta.id}_sorted.bam > ${meta.id}_sorted.bai
+        samtools sort -@ 16 ${sams} > ${meta.id}_sorted.bam
+         samtools index -@ 16 ${meta.id}_sorted.bam > ${meta.id}_sorted.bai
     fi
     """
 }
