@@ -1,19 +1,21 @@
 process DEEP_TRIO {
     tag { trio_ids.join('-') }
-    container 'google/deepvariant:deeptrio-1.8.0'
+    container 'docker://google/deepvariant:deeptrio-1.8.0'
+    containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     
     publishDir "r04_deep_trio", mode: 'copy'
     
     input:
       tuple val(id), val(sex), val(trio_ids), file(bam), file(bai)
       file(Fasta)
+      file(Fai)
     output:
       tuple val(id), val(sex), val(trio_ids), file("*_proband.vcf.gz"),file("*_father.vcf.gz"),file("*_mother.vcf.gz"), file("*_proband.vcf.gz.csi"),file("*_father.vcf.gz.csi"),file("*_mother.vcf.gz.csi")
     script:
       """
       /opt/deepvariant/bin/deeptrio/run_deeptrio \
         --model_type=WGS \
-        --ref=${Fasta} \
+        --ref=${Fasta[0]} \
         --reads_child=${bam[0]} \
         --reads_parent1=${bam[1]} \
         --reads_parent2=${bam[2]} \

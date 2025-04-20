@@ -1,7 +1,7 @@
 process DEEP_VARIANT {
     tag "${id}"
-    container 'google/deepvariant:1.8.0'
-    
+    container 'docker://google/deepvariant:1.8.0'
+    containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(
         path: { "r04_vcfs" },
         pattern: "*.vcf.gz",
@@ -15,6 +15,7 @@ process DEEP_VARIANT {
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
       file(Fasta)
+      file(Fai)
     output:
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.g.vcf.gz"), file("${id}.g.vcf.gz.csi"), emit: gvcf 
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.vcf.gz"), file("${id}.vcf.gz.csi"), emit: vcf
@@ -22,7 +23,7 @@ process DEEP_VARIANT {
       """
       /opt/deepvariant/bin/run_deepvariant \
         --model_type=WGS \
-        --ref=${Fasta} \
+        --ref=${Fasta[0]} \
         --reads=${bam} \
         --output_gvcf=${id}.g.vcf.gz \
         --output_vcf=${id}.vcf.gz \

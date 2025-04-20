@@ -6,7 +6,6 @@ include { BWA_MEM } from './modules/bwa_mem.nf'
 include { MERGE_SAMS } from './modules/merge_sam.nf'
 include { FIXMATE } from './modules/fix_mate.nf'
 include { MARKDUP } from './modules/mark_duplicates.nf'
-include { CONTAM } from './modules/clean_call_contamination.nf'
 include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
 include { SCRAMBLE_CLUST_IDENT } from './modules/scramble.nf'
@@ -17,6 +16,7 @@ include { DEEP_VARIANT } from './modules/deep_variant.nf'
 include { GLNEXUS } from './modules/glnexus.nf'
 include { DEEP_TRIO } from './modules/deep_trio.nf'
 include { DEEP_TRIO_DENOVO } from './modules/deep_trio.nf'
+include { XTEA_ME } from './subworkflows/xtea_ME.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -49,8 +49,9 @@ params.control = file(params.control ?: 'control')
 workflow {
 
   ch_control = file(params.control)
-
-
+  ch_ref_fasta = file(params.referenceFasta)
+  ch_ref_fai = file(params.referenceFasta + ".fai")
+  ch_ref_gff = file( params.referenceGFF )
   CONTROL_PARSER (ch_control)
 
   CONTROL_PARSER.out.reads
@@ -80,33 +81,11 @@ workflow {
   MARKDUP (ch_fixmate)
         .set  { ch_final_bam }
 
+  XTEA_ME (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
+
   EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
 
-  CONTAM (ch_final_bam)  
-
   CONTAM_SMALL (ch_final_bam)
-
-  SCRAMBLE_CLUST_IDENT (ch_final_bam)
-         .set  { ch_scramble_ident }
-
-  SPLIT_CLUST_FILE (ch_scramble_ident)
-         .flatMap { sampleName, chunkFiles ->
-           chunkFiles.sort().indexed().collect { idx, chunkFile ->
-            [ sampleName, idx, chunkFile ]
-            }
-         }
-         .set { ch_split_chunks }
-
-  SCRAMBLE_CLUST_ANALYSIS (ch_split_chunks)
-    .groupTuple(size: 5)
-    .map { sampleName, chunkList ->
-        def sorted = chunkList.sort { it[0] } 
-        def chunkFiles = sorted.collect { it[1] } 
-        [ sampleName, chunkFiles ]
-    }
-    .set { ch_grouped_chunks }
-
-  CAT_CLUST_FILE (ch_grouped_chunks)
 
   ch_final_bam
     .filter { row -> row[3] != 'NA' }
@@ -118,7 +97,7 @@ workflow {
     .groupTuple(size: 3)
     .map { key, bam_bai -> 
             def meta = key.getGroupTarget()
-            def orderedIds = meta.trio.split('-')
+            def orderedIds = meta.trio.tokenize('-')
             def idToIndex = orderedIds.collectEntries { famId ->
             [(famId): orderedIds.indexOf(famId)]
             }
@@ -129,18 +108,17 @@ workflow {
             def sortedSex      = sortedGroup*.sex         
             def sortedbams = sortedGroup*.bam_file
             def sortedbais = sortedGroup*.bai_file
-            tuple(sortedIds, sortedSex,meta.trio.split("-"), sortedbams, sortedbais)
+            tuple(sortedIds, sortedSex,meta.trio.tokenize('-'), sortedbams, sortedbais)
             }  
-    .view()
     .set { ch_trios_bam }
-  ch_ref_fasta = Channel.value( params.referenceFasta )
 
-  DEEP_TRIO (ch_trios_bam, ch_ref_fasta)
+
+  DEEP_TRIO (ch_trios_bam, ch_ref_fasta, ch_ref_fai)
     .set{ ch_deep_trios }
 
   DEEP_TRIO_DENOVO (ch_deep_trios)
 
-  DEEP_VARIANT (ch_final_bam, ch_ref_fasta)
+  DEEP_VARIANT (ch_final_bam, ch_ref_fasta, ch_ref_fai)
 
   DEEP_VARIANT.out.vcf.set { ch_vcf }
   DEEP_VARIANT.out.gvcf
@@ -154,7 +132,7 @@ workflow {
     .groupTuple() 
     .map { key, gvcfs -> 
             def meta = key.getGroupTarget()
-            def orderedIds = meta.family.split('-')
+            def orderedIds = meta.family.tokenize('-')
             def idToIndex = orderedIds.collectEntries { famId ->
             [(famId): orderedIds.indexOf(famId)]
             }
