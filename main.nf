@@ -69,7 +69,6 @@ workflow {
         }
         .groupTuple() 
         .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) }
-        .view()
         .set  { ch_raw_sams }
 
   MERGE_SAMS (ch_raw_sams)

@@ -1,7 +1,8 @@
 process XTEA {
     tag "${id}"
-    container 'jamesrusssilsby/exetea:latest'
-    
+    container 'jamesrusssilsby/exetea:0.1.9d'
+    containerOptions " -B ${params.xtea_libraries}"
+    cpus 16
     publishDir(
         path: { "r04_transposable_elements" },
         pattern: "*.vcf*",
@@ -13,36 +14,38 @@ process XTEA {
       file(Fai)
       file(GFF)
     output:
-      tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.g.vcf.gz"), file("${id}.g.vcf.gz.csi"), emit: gvcf 
-      tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.vcf.gz"), file("${id}.vcf.gz.csi"), emit: vcf
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.g.vcf.gz"), file("*.g.vcf.gz.csi"), emit: gvcf 
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.vcf.gz"), file("*.vcf.gz.csi"), emit: vcf
     script:
       """
       cat >> ${family}_bams.tsv << 'EOF'
-      ${ id.withIndex().collect { idx, sid ->
-        "${sid}\\t${bam[idx]}"
-      }.join('\\n')}
+      ${ id.withIndex().collect { sid, idx ->
+        "${sid}\t${sid}.bam"
+      }.join('\n')}
       EOF
 
       cat >> ${family}_samples.tsv << 'EOF'
-      ${ id.withIndex().collect { idx, sid ->
-        "${sid}" }.join('\\n')}
+      ${ id.withIndex().collect { sid, idx ->
+        "${sid}" }.join('\n')}
       EOF
-
 
       cat ${family}_bams.tsv
       cat ${family}_samples.tsv
 
-       xtea \
+       /data/xTea/bin/xtea \
        -i ${family}_samples.tsv \
        -b ${family}_bams.tsv \
        -x null \
-       -p . \
-       -o submit_jobs.sh \
-       -l /home/rep_lib_annotation/ \
+       -p \$PWD \
+       -o jobs.sh \
+       -l ${params.xtea_libraries} \
        -r ${Fasta[0]} \
        -g ${GFF} \
-       --xtea /home/ec2-user/xTea/xtea/ \
-       -f 5907 \
+       --xtea /data/xTea/xtea/ \
+       -f 63 \
        -y 15
+
+      sed -n 's/^sbatch[[:space:]]*<[[:space:]]*\\(.*\\)\$/\\1/p' jobs.sh \
+      | parallel -j16 'bash < {}'
       """
 }

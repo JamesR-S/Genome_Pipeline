@@ -1,6 +1,7 @@
 process GLNEXUS {
     container 'quay.io/mlin/glnexus:v1.4.1'
     tag "${family}"
+    cpus 16
     publishDir "r04_vcfs", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(gvcfs), file(gvcfcsis)

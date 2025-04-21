@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 process FIXMATE {
     tag "${id}"
+    cpus 16
     publishDir "r04_assembly", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

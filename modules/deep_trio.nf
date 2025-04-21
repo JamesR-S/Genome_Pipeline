@@ -1,5 +1,6 @@
 process DEEP_TRIO {
     tag { trio_ids.join('-') }
+    cpus 16
     container 'docker://google/deepvariant:deeptrio-1.8.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     
@@ -39,6 +40,7 @@ process DEEP_TRIO {
 
 process DEEP_TRIO_DENOVO {
   tag { trio_ids.join('-') }
+  cpus 16
     input:
     tuple val(id), val(sex), val(trio_ids), file(proband_vcfs), file(father_vcfs), file(mother_vcfs), file(proband_vcfscis), file(father_vcfscis), file(mother_vcfscis)
     

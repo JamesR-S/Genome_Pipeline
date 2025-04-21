@@ -1,5 +1,6 @@
 process EXPANSION_HUNTER_DE_NOVO {
     tag "${id}"
+    cpus 16
     publishDir "r04_expansionhunterdenovo", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

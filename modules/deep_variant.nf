@@ -1,5 +1,6 @@
 process DEEP_VARIANT {
     tag "${id}"
+    cpus 16
     container 'docker://google/deepvariant:1.8.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(

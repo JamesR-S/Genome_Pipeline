@@ -9,6 +9,7 @@ workflow XTEA_ME {
     main:
 
     bam_files
+    .view()
     .map {row ->
             def (id, sex, family, trio, famSampleCount, bam, bai) = row
             def key = [family:family, famSampleCount:famSampleCount]
@@ -27,10 +28,11 @@ workflow XTEA_ME {
             }
             def sortedIds      = sortedGroup*.id
             def sortedSex      = sortedGroup*.sex        
-            def sortedBams    = sortedGroup*.gvcf
-            def sortedBais = sortedGroup*.gvcfcsi
+            def sortedBams    = sortedGroup*.bam
+            def sortedBais = sortedGroup*.bai
             tuple(sortedIds, sortedSex,meta.family,meta.famSampleCount, sortedBams, sortedBais)
             }
+    .view()
     .set  { family_bams }
 
     XTEA (family_bams, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
