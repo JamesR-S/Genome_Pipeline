@@ -1,5 +1,5 @@
 process XTEA {
-    tag "${id}"
+    tag "${family}"
     container 'jamesrusssilsby/exetea:0.1.9d'
     containerOptions " -B ${params.xtea_libraries}"
     cpus 16
@@ -18,16 +18,14 @@ process XTEA {
       tuple val(id), val(sex), val(family), val(famSampleCount), file("*.vcf.gz"), file("*.vcf.gz.csi"), emit: vcf
     script:
       """
-      cat >> ${family}_bams.tsv << 'EOF'
-      ${ id.withIndex().collect { sid, idx ->
-        "${sid}\t${sid}.bam"
-      }.join('\n')}
-      EOF
 
-      cat >> ${family}_samples.tsv << 'EOF'
-      ${ id.withIndex().collect { sid, idx ->
-        "${sid}" }.join('\n')}
-      EOF
+      declare -a ids=( ${id.join(" ")} )
+
+      for i in "\${ids[@]}"
+      do
+        echo -e "\${i}" >> ${family}_samples.tsv
+        echo -e "\${i}\\t\${i}.bam" >> ${family}_bams.tsv
+      done
 
       cat ${family}_bams.tsv
       cat ${family}_samples.tsv

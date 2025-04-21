@@ -95,7 +95,7 @@ workflow {
         }
     .groupTuple(size: 3)
     .map { key, bam_bai -> 
-            def meta = key.getGroupTarget()
+            def meta = key
             def orderedIds = meta.trio.tokenize('-')
             def idToIndex = orderedIds.collectEntries { famId ->
             [(famId): orderedIds.indexOf(famId)]
@@ -105,8 +105,8 @@ workflow {
             }
             def sortedIds  = sortedGroup*.id
             def sortedSex      = sortedGroup*.sex         
-            def sortedbams = sortedGroup*.bam_file
-            def sortedbais = sortedGroup*.bai_file
+            def sortedbams = sortedGroup*.bam
+            def sortedbais = sortedGroup*.bai
             tuple(sortedIds, sortedSex,meta.trio.tokenize('-'), sortedbams, sortedbais)
             }  
     .set { ch_trios_bam }
