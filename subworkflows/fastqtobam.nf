@@ -4,10 +4,10 @@ include { FIXMATE } from '../modules/fix_mate.nf'
 include { MARKDUP } from '../modules/mark_duplicates.nf'
 workflow FASTQTOBAM {
     take:
-    control_data
+    ch_parsed
 
     main:
-    BWA_MEM (control_data)
+    BWA_MEM (ch_parsed)
         .map { row ->
             def (id, sex, family, trio, laneCount, famSampleCount, sam_file) = row
             def key = [id:id, sex:sex, family:family, trio:trio, famSampleCount:famSampleCount]
@@ -16,7 +16,6 @@ workflow FASTQTOBAM {
         }
         .groupTuple() 
         .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) }
-        .view()
         .set  { ch_raw_sams }
 
     MERGE_SAMS (ch_raw_sams)

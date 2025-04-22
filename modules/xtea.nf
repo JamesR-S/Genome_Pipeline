@@ -14,8 +14,8 @@ process XTEA {
       file(Fai)
       file(GFF)
     output:
-      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.g.vcf.gz"), file("*.g.vcf.gz.csi"), emit: gvcf 
-      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.vcf.gz"), file("*.vcf.gz.csi"), emit: vcf
+
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.vcf"), emit: vcf
     script:
       """
 
@@ -30,20 +30,25 @@ process XTEA {
       cat ${family}_bams.tsv
       cat ${family}_samples.tsv
 
-       /data/xTea/bin/xtea \
+       ${params.xtea_libraries}xtea \
        -i ${family}_samples.tsv \
        -b ${family}_bams.tsv \
        -x null \
        -p \$PWD \
        -o jobs.sh \
-       -l ${params.xtea_libraries} \
+       -l ${params.xtea_libraries}rep_lib_annotation/ \
        -r ${Fasta[0]} \
        -g ${GFF} \
        --xtea /data/xTea/xtea/ \
-       -f 63 \
-       -y 15
+       -f 5907 \
+       -y 7
 
       sed -n 's/^sbatch[[:space:]]*<[[:space:]]*\\(.*\\)\$/\\1/p' jobs.sh \
       | parallel -j16 'bash < {}'
+
+      for file in WG*/*/*.vcf
+      do
+        grep -v "orphan" \$file > \$(basename \$file))
+      done
       """
 }

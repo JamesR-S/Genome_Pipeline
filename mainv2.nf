@@ -4,11 +4,10 @@ nextflow.enable.dsl=2
 include { CONTROL_PARSER } from './modules/parse_control.nf'
 include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
-include { FASTQTOBAM} from './subworkflows/fastqtobam.nf'
+include { XTEA_ME } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
+include { FASTQTOBAM } from './subworkflows/fastqtobam.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
-include { SCRAMBLE_WF } from './subworkflows/scramble_wf.nf'
-
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -39,29 +38,29 @@ params.control = file(params.control ?: 'control')
 
 workflow {
 
-    ch_control = file(params.control)
+      ch_control = file(params.control)
+      ch_ref_fasta = file(params.referenceFasta)
+      ch_ref_fai = file(params.referenceFasta + ".fai")
+      ch_ref_gff = file( params.referenceGFF )
+      CONTROL_PARSER (ch_control)
 
-    ch_ref_fasta = Channel.value( params.referenceFasta )
+      CONTROL_PARSER.out.reads
+            .splitText()              
+            .filter { it }            
+            .map   { parseLineToTuple(it) }
+            .set  { ch_parsed }
 
-    CONTROL_PARSER (ch_control)
+      FASTQTOBAM (ch_parsed)
+            .out()
+            .set { ch_final_bam }
 
-    CONTROL_PARSER.out.reads
-        .splitText()              
-        .filter { it }            
-        .map   { parseLineToTuple(it) }
-        .set  { ch_parsed }
+      XTEA_ME (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
 
-    FASTQTOBAM (ch_parsed)
-        .set  { ch_final_bam }
+      EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
 
-    EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
+      CONTAM_SMALL (ch_final_bam)
 
-    CONTAM_SMALL (ch_final_bam)
+      SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
 
-    SCRAMBLE_WF (ch_final_bam)
-
-    TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta)
-
-    SNV_INDEL_CALLING (ch_final_bam, ch_ref_fasta)
-
+      TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
 }
