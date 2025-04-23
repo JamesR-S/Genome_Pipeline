@@ -2,7 +2,7 @@ include { BWA_MEM } from '../modules/bwa_mem.nf'
 include { MERGE_SAMS } from '../modules/merge_sam.nf'
 include { FIXMATE } from '../modules/fix_mate.nf'
 include { MARKDUP } from '../modules/mark_duplicates.nf'
-workflow FASTQTOBAM {
+workflow FASTQ_TO_BAM {
     take:
     ch_parsed
 

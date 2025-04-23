@@ -28,7 +28,7 @@ process DEEP_VARIANT {
         --reads=${bam} \
         --output_gvcf=${id}.g.vcf.gz \
         --output_vcf=${id}.vcf.gz \
-        --num_shards=16
+        --num_shards=16 \
         --vcf_stats_report=true
 
         bcftools index ${id}.g.vcf.gz

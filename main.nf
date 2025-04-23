@@ -8,15 +8,11 @@ include { FIXMATE } from './modules/fix_mate.nf'
 include { MARKDUP } from './modules/mark_duplicates.nf'
 include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
-include { SCRAMBLE_CLUST_IDENT } from './modules/scramble.nf'
-include { SPLIT_CLUST_FILE } from './modules/scramble.nf'
-include { SCRAMBLE_CLUST_ANALYSIS } from './modules/scramble.nf'
-include { CAT_CLUST_FILE } from './modules/scramble.nf'
 include { DEEP_VARIANT } from './modules/deep_variant.nf'
 include { GLNEXUS } from './modules/glnexus.nf'
 include { DEEP_TRIO } from './modules/deep_trio.nf'
 include { DEEP_TRIO_DENOVO } from './modules/deep_trio.nf'
-include { XTEA_ME } from './subworkflows/xtea_ME.nf'
+include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -80,7 +76,7 @@ workflow {
   MARKDUP (ch_fixmate)
         .set  { ch_final_bam }
 
-  XTEA_ME (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
+  MOBILE_ELEMENTS (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
 
   EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
 

@@ -46,9 +46,6 @@ process XTEA {
       sed -n 's/^sbatch[[:space:]]*<[[:space:]]*\\(.*\\)\$/\\1/p' jobs.sh \
       | parallel -j16 'bash < {}'
 
-      for file in WG*/*/*.vcf
-      do
-        grep -v "orphan" \$file > \$(basename \$file))
-      done
+      for file in WG*/*/*.vcf; do grep -v "orphan" \$file > \$(basename \$file); done
       """
 }

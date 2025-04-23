@@ -4,9 +4,9 @@ nextflow.enable.dsl=2
 include { CONTROL_PARSER } from './modules/parse_control.nf'
 include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
-include { XTEA_ME } from './subworkflows/xtea_ME.nf'
+include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
-include { FASTQTOBAM } from './subworkflows/fastqtobam.nf'
+include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
@@ -50,11 +50,10 @@ workflow {
             .map   { parseLineToTuple(it) }
             .set  { ch_parsed }
 
-      FASTQTOBAM (ch_parsed)
-            .out()
-            .set { ch_final_bam }
+      FASTQ_TO_BAM (ch_parsed)
+      FASTQ_TO_BAM.out.set { ch_final_bam }
 
-      XTEA_ME (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
+      MOBILE_ELEMENTS (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
 
       EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
 

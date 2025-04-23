@@ -1,5 +1,5 @@
 include { XTEA } from '../modules/xtea.nf'
-workflow XTEA_ME {
+workflow MOBILE_ELEMENTS {
     take:
     bam_files
     ch_ref_fasta
