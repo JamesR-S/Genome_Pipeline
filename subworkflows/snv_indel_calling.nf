@@ -38,6 +38,13 @@ workflow SNV_INDEL_CALLING {
         .set  { family_gvcf }
 
     GLNEXUS (family_gvcf)
-    emit:
+        .set { family_vcf }
+
     ch_vcf
+        .filter { row -> row[4] < 2 }
+        .mix(family_vcf)
+        .set { ch_mixed_vcf }
+
+    emit:
+    ch_mixed_vcf
 }

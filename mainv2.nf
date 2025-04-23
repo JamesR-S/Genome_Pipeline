@@ -8,6 +8,7 @@ include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
 include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
+include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -60,6 +61,9 @@ workflow {
       CONTAM_SMALL (ch_final_bam)
 
       SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
+      SNV_INDEL_CALLING.out.set { ch_mixed_vcf }
+
+      HOMOZYGOSITY_AND_HAPLOTYPES(ch_mixed_vcf)
 
       TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
 }

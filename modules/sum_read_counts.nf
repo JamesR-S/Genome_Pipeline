@@ -1,21 +1,20 @@
 #!/usr/bin/env nextflow
-process sumReadCounts {
-    tag "${sample.name}"
+process SUM_READ_COUNTS {
+    tag "${meta.id}"
+    executor 'local'
     publishDir "r04_metrics", mode: 'copy'
     input:
-      tuple val(sample), file(countFiles)
+      tuple val(meta), file(ct)
     output:
-      tuple val(sample), file("${sample.name}_checkFastq.txt")
+      tuple val(meta.id), file("${meta.id}_checkFastq.txt")
     script:
     """
-    echo "Summing read counts for sample ${sampleName}"
-    total=0
-    # Convert countFiles into a bash array
-    files=( ${countFiles} )
-    for f in "\${files[@]}"; do
-       count=\$(cat "\$f")
-       total=\$(expr \$total + \$count)
-    done
-    echo \$total > ${sampleName}_checkFastq.txt
+    ct_files=( ${ct.join(" ")} )
+    num_files=\$(echo \${ct_files[@]} | wc -w)
+    if [ \$num_files -gt 1 ]; then
+       awk '{s+=$1} END {print s}' "\${ct_files[@]}" > ${meta.id}_checkFastq.txt
+    else
+        cp ${ct} ${meta.id}_checkFastq.txt
+    fi
     """
 }

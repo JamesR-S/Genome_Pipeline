@@ -1,8 +1,6 @@
 #!/usr/bin/env nextflow
 process MERGE_SAMS {
-    module 'SAMtools/1.17-GCC-12.2.0'
     tag "${meta.id}"
-    cpus 16
     publishDir "r04_assembly", mode: 'copy'
     input:
       tuple val(meta), file(sams)
