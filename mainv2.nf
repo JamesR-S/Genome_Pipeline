@@ -7,6 +7,7 @@ include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
 include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
 include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
+include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
 // Helper function: parse one line of "key=value" pairs
@@ -58,8 +59,9 @@ workflow {
 
       EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
       
-
       CONTAM_SMALL (ch_final_bam)
+
+      COVERAGE (ch_final_bam)
 
       SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
       SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
