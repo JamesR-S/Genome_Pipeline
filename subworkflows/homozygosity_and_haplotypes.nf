@@ -8,8 +8,8 @@ workflow HOMOZYGOSITY_AND_HAPLOTYPES {
 
    HOMOZYGOSITY(ch_mixed_vcf)
 
-   ch_mixed_vcf()
-       .filter { row -> row[4] > 1 }
+   ch_mixed_vcf
+       .filter { row -> row[3] > 1 }
        .set { ch_multisample_vcf }
 
    SHARED_HAPLOTYPES(ch_multisample_vcf)

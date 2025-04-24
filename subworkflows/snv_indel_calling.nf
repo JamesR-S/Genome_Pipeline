@@ -12,7 +12,7 @@ workflow SNV_INDEL_CALLING {
 
     DEEP_VARIANT.out.vcf.set { ch_vcf }
     DEEP_VARIANT.out.gvcf
-        .filter { row -> row[4] >= 2 }
+        .filter { row -> row[3] >= 2 }
         .map {row ->
                 def (id, sex, family, famSampleCount, gvcf, gvcfcsi) = row
                 def key = [family:family, famSampleCount:famSampleCount]
@@ -35,16 +35,12 @@ workflow SNV_INDEL_CALLING {
                 def sortedGvcfCsis = sortedGroup*.gvcfcsi
                 tuple(sortedIds, sortedSex,meta.family,meta.famSampleCount, sortedGvcfs, sortedGvcfCsis)
                 }
-        .set  { family_gvcf }
+        .set  { ch_family_gvcf }
 
-    GLNEXUS (family_gvcf)
-        .set { family_vcf }
-
-    ch_vcf
-        .filter { row -> row[4] < 2 }
-        .mix(family_vcf)
-        .set { ch_mixed_vcf }
+    GLNEXUS (ch_family_gvcf)
+        .set { ch_family_vcf }
 
     emit:
-    ch_mixed_vcf
+    single_sample = ch_vcf
+    family = ch_family_vcf
 }

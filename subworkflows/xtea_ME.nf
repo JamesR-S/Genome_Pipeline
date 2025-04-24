@@ -9,7 +9,6 @@ workflow MOBILE_ELEMENTS {
     main:
 
     bam_files
-    .view()
     .map {row ->
             def (id, sex, family, trio, famSampleCount, bam, bai) = row
             def key = [family:family, famSampleCount:famSampleCount]
@@ -32,7 +31,6 @@ workflow MOBILE_ELEMENTS {
             def sortedBais = sortedGroup*.bai
             tuple(sortedIds, sortedSex,meta.family,meta.famSampleCount, sortedBams, sortedBais)
             }
-    .view()
     .set  { family_bams }
 
     XTEA (family_bams, ch_ref_fasta, ch_ref_fai, ch_ref_gff)

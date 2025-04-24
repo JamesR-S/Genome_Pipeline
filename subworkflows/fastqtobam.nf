@@ -1,5 +1,6 @@
 include { BWA_MEM } from '../modules/bwa_mem.nf'
 include { KEVLAR_COUNT } from '../modules/kevlar_count.nf'
+include { CHECK_FASTQ } from '../modules/check_fastq.nf'
 include { SUM_READ_COUNTS } from '../modules/sum_read_counts.nf'
 include { MERGE_SAMS } from '../modules/merge_sam.nf'
 include { FIXMATE } from '../modules/fix_mate.nf'
@@ -20,7 +21,7 @@ workflow FASTQ_TO_BAM {
         .map { key, sam_file -> tuple(key.getGroupTarget(), sam_file) }
         .set  { ch_raw_sams }
 
-    KEVLAR_COUNT (ch_parsed)
+    CHECK_FASTQ (ch_parsed)
         .map { row ->
             def (id, sex, family, trio, laneCount, famSampleCount, ct_file) = row
             def key = [id:id, sex:sex, family:family, trio:trio, famSampleCount:famSampleCount]

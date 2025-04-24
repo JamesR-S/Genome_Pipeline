@@ -57,13 +57,20 @@ workflow {
       MOBILE_ELEMENTS (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
 
       EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
+      
 
       CONTAM_SMALL (ch_final_bam)
 
       SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
-      SNV_INDEL_CALLING.out.set { ch_mixed_vcf }
+      SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
+            .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
+      .set { ch_singleton_vcf }
 
-      HOMOZYGOSITY_AND_HAPLOTYPES(ch_mixed_vcf)
+      SNV_INDEL_CALLING.out.family.mix(ch_singleton_vcf)
+      .view()
+      .set { ch_combined_vcf }
+
+      HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
 
       TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
 }
