@@ -3,6 +3,9 @@ include { INDEX_COVERAGE } from '../modules/index_coverage.nf'
 include { COVERAGE_REPORT } from '../modules/coverage_report.nf'
 include { COVERAGE_BINNER } from '../modules/coverage_binner.nf'
 include { XY_COVERAGE } from '../modules/xy_coverage.nf'
+include { INSERT_SIZES } from '../modules/insert_sizes.nf'
+include { CLIP_RATE } from '../modules/clip_rate.nf'
+
 workflow COVERAGE {
     take:
     ch_final_bam
@@ -24,6 +27,10 @@ workflow COVERAGE {
     .set { ch_collapsed } 
     
     COVERAGE_BINNER(ch_final_bam)
+
+    INSERT_SIZES(ch_final_bam)
+
+    CLIP_RATE(ch_final_bam)
 
     DEPTH_OF_COVERAGE(ch_collapsed)
         .set { ch_coverage }

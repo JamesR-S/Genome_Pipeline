@@ -1,5 +1,6 @@
 include { HOMOZYGOSITY } from '../modules/savvy.nf'
 include { SHARED_HAPLOTYPES } from '../modules/savvy.nf'
+include { UPD } from '../modules/savvy.nf'
 workflow HOMOZYGOSITY_AND_HAPLOTYPES {
     take:
     ch_mixed_vcf
@@ -13,4 +14,6 @@ workflow HOMOZYGOSITY_AND_HAPLOTYPES {
        .set { ch_multisample_vcf }
 
    SHARED_HAPLOTYPES(ch_multisample_vcf)
+
+   UPD(ch_multisample_vcf)
 }
