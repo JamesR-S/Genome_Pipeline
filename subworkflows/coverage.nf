@@ -1,6 +1,7 @@
 include { DEPTH_OF_COVERAGE } from '../modules/depth_of_coverage.nf'
 include { INDEX_COVERAGE } from '../modules/index_coverage.nf'
 include { COVERAGE_REPORT } from '../modules/coverage_report.nf'
+include { COVERAGE_BINNER } from '../modules/coverage_binner.nf'
 include { XY_COVERAGE } from '../modules/xy_coverage.nf'
 workflow COVERAGE {
     take:
@@ -8,7 +9,7 @@ workflow COVERAGE {
 
     main:
     ch_final_bam
-        .collect()
+        .collect(flat: false)
         .map { rows ->              
         tuple( rows.collect{ it[0] },   
                rows.collect{ it[1] },   
@@ -18,8 +19,11 @@ workflow COVERAGE {
                rows.collect{ it[5] },   
                rows.collect{ it[6] } )  
     }
+    .view()
     .set { ch_collapsed } 
     
+    COVERAGE_BINNER(ch_final_bam)
+
     DEPTH_OF_COVERAGE(ch_collapsed)
         .set { ch_coverage }
 

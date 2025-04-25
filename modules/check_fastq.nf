@@ -9,7 +9,6 @@ process CHECK_FASTQ {
       tuple val(id), val(sex), val(family), val(trio), val(laneCount), val(famSampleCount), file("${id}_${flowcell}.ct")
     script:
     """
-    echo "Running CheckFastq for sample ${id} ${flowcell} ? "(${flowcell})" : ""}"
-    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq fastq/\${sample.fastq1} fastq/\${sample.fastq2} > ${id}_${flowcell}.ct
+    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq ${fastqFiles.R1} ${fastqFiles.R2} > ${id}_${flowcell}.ct
     """
 }
