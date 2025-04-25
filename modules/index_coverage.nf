@@ -5,13 +5,14 @@ process INDEX_COVERAGE {
     
     input:
       tuple val(id), val(sex), file(coverage)
+      file(control)
     output:
       tuple val(id), val(sex), file("Coverage.indexed")
     script:
       """
       java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir} IndexedCoverageFile2 \\
         ${coverage} \\
-        ${params.control} \\
+        ${control} \\
         ${params.base}/resources/grch38-v2-pipeline/variantcall.bed \\
         > Coverage.indexed
       """

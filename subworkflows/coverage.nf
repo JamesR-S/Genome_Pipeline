@@ -6,6 +6,7 @@ include { XY_COVERAGE } from '../modules/xy_coverage.nf'
 workflow COVERAGE {
     take:
     ch_final_bam
+    ch_control
 
     main:
     ch_final_bam
@@ -27,7 +28,7 @@ workflow COVERAGE {
     DEPTH_OF_COVERAGE(ch_collapsed)
         .set { ch_coverage }
 
-    INDEX_COVERAGE(ch_coverage)
+    INDEX_COVERAGE(ch_coverage,ch_control)
         .set { ch_index_coverage }
 
     COVERAGE_REPORT(ch_index_coverage)

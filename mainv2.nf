@@ -10,6 +10,7 @@ include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
 include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
+include { QC } from './subworkflows/qc.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -46,11 +47,14 @@ workflow {
       ch_ref_gff = file( params.referenceGFF )
       CONTROL_PARSER (ch_control)
 
+
       CONTROL_PARSER.out.reads
             .splitText()              
             .filter { it }            
             .map   { parseLineToTuple(it) }
             .set  { ch_parsed }
+
+      QC(ch_parsed)
 
       FASTQ_TO_BAM (ch_parsed)
       FASTQ_TO_BAM.out.set { ch_final_bam }
@@ -61,7 +65,7 @@ workflow {
       
       CONTAM_SMALL (ch_final_bam)
 
-      COVERAGE (ch_final_bam)
+      COVERAGE (ch_final_bam,ch_control)
 
       SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
       SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
