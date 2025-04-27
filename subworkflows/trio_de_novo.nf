@@ -1,5 +1,6 @@
 include { DEEP_TRIO } from '../modules/deep_trio.nf'
 include { DEEP_TRIO_DENOVO } from '../modules/deep_trio.nf'
+include { DENOVO_LARGE_INSERTS } from '../modules/denovo_large_inserts.nf'
 workflow TRIO_DE_NOVO {
     take:
     ch_final_bam
@@ -37,4 +38,7 @@ workflow TRIO_DE_NOVO {
         .set{ ch_deep_trios }
 
     DEEP_TRIO_DENOVO (ch_deep_trios)
+
+    DENOVO_LARGE_INSERTS (ch_trios_bam)
+
     }

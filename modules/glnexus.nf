@@ -1,5 +1,5 @@
 process GLNEXUS {
-    container 'quay.io/mlin/glnexus:v1.4.1'
+    container 'docker://cgrlab/glnexus:v1.4.1'
     tag "${family}"
     cpus 16
     publishDir "r04_vcfs", mode: 'copy'
