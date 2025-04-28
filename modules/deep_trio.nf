@@ -26,7 +26,7 @@ process DEEP_TRIO {
         --sample_name_child "\$(basename ${bam[0]})" \
         --sample_name_parent1 "\$(basename ${bam[1]})" \
         --sample_name_parent2 "\$(basename ${bam[2]})" \
-        --num_shards \$(nproc)  \
+        --num_shards 16  \
         --intermediate_results_dir intermediate_results_dir \
         --output_gvcf_child \$(basename ${bam[0]})_proband.g.vcf.gz \
         --output_gvcf_parent1 \$(basename ${bam[1]})_father.g.vcf.gz \

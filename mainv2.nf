@@ -45,6 +45,9 @@ workflow {
       ch_ref_fasta = file(params.referenceFasta)
       ch_ref_fai = file(params.referenceFasta + ".fai")
       ch_ref_gff = file( params.referenceGFF )
+      ch_gnomad_common = file ( params.gnomadCommon )
+      ch_gnomad_common_idx = file ( params.gnomadCommon + ".csi" )
+
       CONTROL_PARSER (ch_control)
 
 
@@ -73,10 +76,9 @@ workflow {
       .set { ch_singleton_vcf }
 
       SNV_INDEL_CALLING.out.family.mix(ch_singleton_vcf)
-      .view()
       .set { ch_combined_vcf }
 
       HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
 
-      TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
+      TRIO_DE_NOVO (ch_final_bam, SNV_INDEL_CALLING.out.single_sample, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx)
 }

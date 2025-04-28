@@ -23,7 +23,6 @@ workflow COVERAGE {
                rows.collect{ it[5] },   
                rows.collect{ it[6] } )  
     }
-    .view()
     .set { ch_collapsed } 
     
     COVERAGE_BINNER(ch_final_bam)
