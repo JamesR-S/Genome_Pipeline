@@ -1,5 +1,5 @@
 process INDEX_COVERAGE {
-    tag "${id}"
+    tag { id.join('-') }
     cpus 1
     publishDir("r04_metrics", mode: 'copy')
     

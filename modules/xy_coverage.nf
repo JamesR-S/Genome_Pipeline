@@ -1,5 +1,5 @@
 process XY_COVERAGE {
-    tag "${ids}"
+    tag { ids.join('-') }
     cpus 1
     publishDir("r04_metrics", mode: 'copy')
     

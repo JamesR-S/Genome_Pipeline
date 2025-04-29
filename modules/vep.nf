@@ -3,7 +3,7 @@ process VEP {
     tag "${family}"
     cpus 16
     container 'docker://ensemblorg/ensembl-vep'
-    containerOptions "-B ${params.vepData}:/data/"
+    containerOptions "-B ${params.vepData}:/data"
     publishDir "r04_vep", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -11,7 +11,7 @@ process VEP {
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${family}_vep_annotated.vcf")
     script:
       """
-      vep --fork 16 --cache --offline --assembly GRCh38 --fasta /data/homo_sapiens/113_GRCh38/Homo_sapiens.GRCh38.dna.toplevel.fa.gz --format vcf --vcf --force_overwrite \
+      vep --dir /data --fork 16 --cache --offline --assembly GRCh38 --fasta /data/homo_sapiens/113_GRCh38/Homo_sapiens.GRCh38.dna.toplevel.fa.gz --format vcf --vcf --force_overwrite \
         --input_file ${vcf} \
         --output_file ${family}_vep_annotated.vcf \
         --plugin AlphaMissense,file=/data/AlphaMissense_hg38.tsv.gz \

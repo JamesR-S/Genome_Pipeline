@@ -1,5 +1,5 @@
 process DEPTH_OF_COVERAGE {
-    tag "${id}"
+    tag { id.join('-') }
     cpus 16
     publishDir("r04_metrics", mode: 'copy')
     
