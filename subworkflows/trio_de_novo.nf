@@ -40,9 +40,8 @@ workflow TRIO_DE_NOVO {
     ch_final_bam
         .filter { row -> row[3] != 'NA' }
         .join(ch_single_sample_vcf)
-        .map { row -> (id,
-           sex_bam, family_bam, trio, famCt_bam, bam, bai,
-           sex_vcf,  family_vcf, famCt_vcf, vcf, csi) = row
+        .map { row -> 
+            def (id, sex_bam, family_bam, trio, famCt_bam, bam, bai, sex_vcf,  family_vcf, famCt_vcf, vcf, csi) = row
 
            // sanity-checks (optional but useful)
            assert sex_bam == sex_vcf

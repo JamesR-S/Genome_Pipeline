@@ -11,6 +11,7 @@ include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
 include { QC } from './subworkflows/qc.nf'
+include { ANNOTATION } from './subworkflows/annotation.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -79,6 +80,8 @@ workflow {
       .set { ch_combined_vcf }
 
       HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
+
+      ANNOTATION(ch_combined_vcf)
 
       TRIO_DE_NOVO (ch_final_bam, SNV_INDEL_CALLING.out.single_sample, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx)
 }

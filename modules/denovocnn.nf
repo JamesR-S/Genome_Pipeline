@@ -22,7 +22,7 @@ process DENOVOCNN {
       parallel --jobs \$(nproc) "
       echo 'Processing {}' ; \
       /app/apply_denovocnn.sh \
-        -w=\$PWD \
+        -w=\${PWD}/output \
         -g=${Fasta[0]} \
         --variant-list={} \
         -cb=${bam[0]} \
