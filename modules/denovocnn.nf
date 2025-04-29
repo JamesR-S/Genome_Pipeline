@@ -19,19 +19,20 @@ process DENOVOCNN {
       bcftools isec -C ${vcf[0]} ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt
       split -d -l 10000 --additional-suffix=.txt all_variants.txt part_variants
 
-      parallel --bar --jobs \$(nproc) '
+      parallel --jobs \$(nproc) "
+      echo 'Processing {}' ; \
       /app/apply_denovocnn.sh \
-        --workdir='"\$PWD"'' \
-        --ref=${Fasta[0]} \
-        -v {} \
-        --child-bam=${bam[0]} \
-        --father-bam=${bam[1]} \
-        --mother-bam=${bam[2]} \
-        --snp-model=/app/models/snp \
-        --in-model=/app/models/ins \
-        --del-model=/app/models/del \
-        -o    predictions_{/.}.csv
-      ' ::: part_variants*.txt
+        -w=\$PWD \
+        -g=${Fasta[0]} \
+        --variant-list={} \
+        -cb=${bam[0]} \
+        -fb=${bam[1]} \
+        -mb=${bam[2]} \
+        -sm=/app/models/snp \
+        -im=/app/models/ins \
+        -dm=/app/models/del \
+        -o    predictions_{/.}.csv \
+      " ::: part_variants*.txt
 
       (head -n1 predictions_part_variants00.csv &&  \
       tail -q -n +2 predictions_part_variants*.csv) \
