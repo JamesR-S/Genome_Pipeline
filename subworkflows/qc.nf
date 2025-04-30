@@ -17,4 +17,8 @@ workflow QC {
         .set  { ch_grouped_fq }
 
     CHECK_FASTQ (ch_grouped_fq)
+        .set { ch_check_fastq }
+
+    emit:
+    ch_check_fastq
 }

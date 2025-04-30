@@ -12,6 +12,7 @@ include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
 include { QC } from './subworkflows/qc.nf'
 include { ANNOTATION } from './subworkflows/annotation.nf'
+include { CYTOMEGALOVIRUS } from './subworkflows/cytomegalovirus.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -59,9 +60,12 @@ workflow {
             .set  { ch_parsed }
 
       QC(ch_parsed)
+      QC.out.set { ch_check_fastq }
 
       FASTQ_TO_BAM (ch_parsed)
       FASTQ_TO_BAM.out.set { ch_final_bam }
+
+      CYTOMEGALOVIRUS (ch_final_bam, ch_check_fastq)
 
       MOBILE_ELEMENTS (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
 

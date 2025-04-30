@@ -13,7 +13,7 @@ process DENOVOCNN {
       file(gnomad_snps)
       file(gnomad_snp_idx)
     output:
-      tuple val(id), val(trio_ids), file("*_proband.vcf.gz"),file("*_father.vcf.gz"),file("*_mother.vcf.gz"), file("*_proband.vcf.gz.csi"),file("*_father.vcf.gz.csi"),file("*_mother.vcf.gz.csi")
+      tuple val(id), val(trio_ids), file("{trio_ids.join('-')}_denovos.filtered.txt")
     script:
       """
       bcftools isec -C ${vcf[0]} ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt
@@ -22,7 +22,7 @@ process DENOVOCNN {
       parallel --jobs \$(nproc) "
       echo 'Processing {}' ; \
       /app/apply_denovocnn.sh \
-        -w=\${PWD}/output \
+        -w=\${PWD} \
         -g=${Fasta[0]} \
         --variant-list={} \
         -cb=${bam[0]} \
@@ -31,7 +31,7 @@ process DENOVOCNN {
         -sm=/app/models/snp \
         -im=/app/models/ins \
         -dm=/app/models/del \
-        -o    predictions_{/.}.csv \
+        -o=predictions_{/.}.csv \
       " ::: part_variants*.txt
 
       (head -n1 predictions_part_variants00.csv &&  \

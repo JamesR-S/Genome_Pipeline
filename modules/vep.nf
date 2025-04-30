@@ -11,12 +11,13 @@ process VEP {
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${family}_vep_annotated.vcf")
     script:
       """
-      vep --dir /data --fork 16 --cache --offline --assembly GRCh38 --fasta /data/homo_sapiens/113_GRCh38/Homo_sapiens.GRCh38.dna.toplevel.fa.gz --format vcf --vcf --force_overwrite \
+      vep --dir /data --fork 16 --cache --offline --assembly GRCh38 --regulatory --fasta /data/homo_sapiens/113_GRCh38/Homo_sapiens.GRCh38.dna.toplevel.fa.gz --format vcf --vcf --force_overwrite \
         --input_file ${vcf} \
         --output_file ${family}_vep_annotated.vcf \
         --plugin AlphaMissense,file=/data/AlphaMissense_hg38.tsv.gz \
         --plugin REVEL,file=/data/new_tabbed_revel_grch38.tsv.gz \
         --plugin NMD \
+        --plugin UTRAnnotator,file=/data/uORF_starts_ends_GRCh38_PUBLIC.txt \
         --plugin LoF,loftee_path:/data/plugins/ \
         --dir_plugins /data/plugins/ \
         --plugin LOEUF,file=/data/loeuf_dataset_grch38.tsv.gz,match_by=transcript \
