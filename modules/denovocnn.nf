@@ -13,7 +13,7 @@ process DENOVOCNN {
       file(gnomad_snps)
       file(gnomad_snp_idx)
     output:
-      tuple val(id), val(trio_ids), file("{trio_ids.join('-')}_denovos.filtered.txt")
+      tuple val(id), val(trio_ids), file("${trio_ids.join('-')}_denovos.filtered.txt")
     script:
       """
       bcftools isec -C ${vcf[0]} ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt

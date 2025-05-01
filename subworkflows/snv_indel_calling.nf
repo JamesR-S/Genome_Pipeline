@@ -1,5 +1,6 @@
 include { DEEP_VARIANT } from '../modules/deep_variant.nf'
 include { GLNEXUS } from '../modules/glnexus.nf'
+include { ANCESTRY } from '../modules/ancestry.nf'
 workflow SNV_INDEL_CALLING {
     take:
     ch_final_bam
@@ -39,6 +40,8 @@ workflow SNV_INDEL_CALLING {
 
     GLNEXUS (ch_family_gvcf)
         .set { ch_family_vcf }
+
+    ANCESTRY(DEEP_VARIANT.out.gvcf)
 
     emit:
     single_sample = ch_vcf
