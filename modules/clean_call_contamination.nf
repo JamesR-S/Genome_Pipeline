@@ -3,7 +3,7 @@ process CONTAM {
     tag "${id}"
     module 'SAMtools/1.17-GCC-12.2.0'
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:
@@ -22,7 +22,7 @@ process CONTAM_SMALL {
     cpus 16
     module 'SAMtools/1.17-GCC-12.2.0'
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:

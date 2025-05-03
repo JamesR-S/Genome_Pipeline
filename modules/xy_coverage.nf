@@ -1,7 +1,7 @@
 process XY_COVERAGE {
     tag { ids.join('-') }
     cpus 1
-    publishDir("r04_metrics", mode: 'copy')
+    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     
     input:
       tuple val(ids), val(sex), file(coverage)

@@ -32,14 +32,13 @@ def parseLineToTuple(String line) {
     def famSampleCount = map.familySampleCount.toInteger()
 
     // Build the list of file() objects
-    def fastqFiles = [
-       R1: file("fastq/"+map.fastq1),
-       R2: file("fastq/"+map.fastq2)
-    ]
-    return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, fastqFiles ]
+    def fq1 = file(params.batchDir+"/fastq/"+map.fastq1)
+    def fq2 = file(params.batchDir+"/fastq/"+map.fastq2)
+    
+    return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, fq1, fq2 ]
 }
-
-params.control = file(params.control ?: 'control')
+params.batchDir = file(params.batchDir ?: '.')
+params.control = file(params.control ?: params.batchDir+"/control")
 
 workflow {
 

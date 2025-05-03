@@ -2,7 +2,7 @@
 process HOMOZYGOSITY {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
     output:
@@ -20,7 +20,7 @@ process HOMOZYGOSITY {
 process SHARED_HAPLOTYPES {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
     output:
@@ -40,7 +40,7 @@ process SHARED_HAPLOTYPES {
 process UPD {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
     output:

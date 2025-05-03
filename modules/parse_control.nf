@@ -1,6 +1,6 @@
 process CONTROL_PARSER {
     tag "$controlFile"
-    executor 'local'
+    cpus 1
     input:
       path controlFile
 

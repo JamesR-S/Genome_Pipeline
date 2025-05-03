@@ -4,7 +4,7 @@ process XTEA {
     containerOptions " -B ${params.xtea_libraries}"
     cpus 16
     publishDir(
-        path: { "r04_transposable_elements" },
+        path: { "${params.batchDir}/r04_transposable_elements" },
         pattern: "*.vcf*",
         mode: 'copy')
     

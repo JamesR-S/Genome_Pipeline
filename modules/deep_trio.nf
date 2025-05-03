@@ -4,7 +4,7 @@ process DEEP_TRIO {
     container 'docker://google/deepvariant:deeptrio-1.8.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     
-    publishDir "r04_deep_trio", mode: 'copy'
+    publishDir "${params.batchDir}/r04_deep_trio", mode: 'copy'
     
     input:
       tuple val(id), val(sex), val(trio_ids), file(bam), file(bai)

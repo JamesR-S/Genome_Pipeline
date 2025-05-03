@@ -2,7 +2,7 @@
 process CYTOMEGALOVIRUS_COUNT {
     cpus 4
     tag "${id}"
-    publishDir "r04_cytomegalovirus", mode: 'copy'
+    publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy'
     input:
       tuple val(id), file(sam), file(cfq)
     output:

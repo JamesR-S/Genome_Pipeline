@@ -4,7 +4,7 @@ process DENOVOCNN {
     container 'docker://jamesrusssilsby/denovocnn:latest'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     
-    publishDir "r04_denovocnn", mode: 'copy'
+    publishDir "${params.batchDir}/r04_denovocnn", mode: 'copy'
     
     input:
       tuple val(id), val(trio_ids), file(bam), file(bai), file(vcf), file(csi)

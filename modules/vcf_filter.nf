@@ -2,7 +2,7 @@
 process VCF_FILTER {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "r04_vcfs", mode: 'copy'
+    publishDir "${params.batchDir}/r04_vcfs", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
     output:

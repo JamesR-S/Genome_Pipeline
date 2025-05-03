@@ -1,7 +1,7 @@
 process COVERAGE_BINNER {
     tag "${id}"
     cpus 2
-    publishDir("r04_metrics", mode: 'copy')
+    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

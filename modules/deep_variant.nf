@@ -4,12 +4,12 @@ process DEEP_VARIANT {
     container 'docker://google/deepvariant:1.8.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(
-        path: { "r04_vcfs" },
+        path: { "${params.batchDir}/r04_vcfs" },
         pattern: "*.vcf.gz",
         mode: 'copy')
 
     publishDir(
-        path: { "r03_gvcfs" },
+        path: { "${params.batchDir}/r03_gvcfs" },
         pattern: "*.g.vcf.gz",
         mode: 'copy')
     

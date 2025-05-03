@@ -3,7 +3,7 @@ process ANCESTRY {
     cpus 16
     container 'jamesrusssilsby/gnomadtools:latest'
     containerOptions{"-B ${params.tmpDir} -B ${params.resourcesDir}/gnomad_pca"}
-    publishDir "r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(gvcf), file(csi)
 

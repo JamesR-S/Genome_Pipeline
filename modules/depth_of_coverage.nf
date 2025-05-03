@@ -1,7 +1,7 @@
 process DEPTH_OF_COVERAGE {
     tag { id.join('-') }
     cpus 16
-    publishDir("r04_metrics", mode: 'copy')
+    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
