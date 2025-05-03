@@ -1,25 +1,29 @@
-#!/usr/bin/env nextflow
 process MARKDUP {
-    tag "${id}"
+    cpus 16
     publishDir "${params.batchDir}/r04_assembly", mode: 'copy'
+    container 'mgibio/samtools:v1.21-noble'
+    tag "${id}"
+
     input:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(fixmateBam), file(fixmateBai)
+      tuple val(id), val(sex), val(family), val(trio),
+            val(famSampleCount), file(fxbam)
+
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.bam"), file("${id}.bai")
+      tuple val(id), val(sex), val(family), val(trio),
+            val(famSampleCount),
+            file("${id}.bam"), file("${id}.bai"),
+            file("${id}.markdup_metrics")
+
     script:
       """
-      mkdir temp_files
-      tmp_dir="\$PWD/temp_files"
-      echo "Running Picard MarkDuplicates for sample ${id}"
-      java \
-      -Djava.io.tmpdir="\$tmp_dir" \
-      -jar ${params.picardJar} MarkDuplicates \
-      I=${fixmateBam} \
-      O=${id}.bam \
-      METRICS_FILE=${id}.metrics \
-      REMOVE_DUPLICATES=true \
-      CREATE_INDEX=true \
-      VALIDATION_STRINGENCY=SILENT \
-      TMP_DIR=\${tmp_dir}
+      set -euo pipefail
+      echo "[${id}] coordinate-sort"
+      samtools sort -@${task.cpus} -l 1 -o ${id}_pos.bam ${fxbam}
+
+      echo "[${id}] samtools markdup (remove dups, stats)"
+      samtools markdup -@${task.cpus} -r -s -d 100 \
+          -f ${id}.markdup_metrics ${id}_pos.bam ${id}.bam
+
+      samtools index -@${task.cpus} ${id}.bam
       """
 }

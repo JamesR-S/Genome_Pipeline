@@ -1,22 +1,20 @@
 #!/usr/bin/env nextflow
 process FIXMATE {
-    tag "${id}"
     cpus 16
+    container 'mgibio/samtools:v1.21-noble'
+    tag "${id}"
+
     input:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
+      tuple val(id), val(sex), val(family), val(trio),
+            val(famSampleCount), file(bam)
+
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}_fixmate.bam"), file("${id}_fixmate.bai")
+      tuple val(id), val(sex), val(family), val(trio),
+            val(famSampleCount), file("${id}_fx.bam")
+
     script:
       """
-      echo "Running Picard FixMateInformation for sample ${id}"
-
-      mkdir tmp
-
-      java -Xmx4g -jar ${params.picardJar} FixMateInformation \
-      I=${bam} \
-      O=${id}_fixmate.bam \
-      VALIDATION_STRINGENCY=SILENT \
-      CREATE_INDEX=true \
-      TMP_DIR=tmp
+      echo "[${id}] samtools fixmate"
+      samtools fixmate -m -@${task.cpus} ${bam} ${id}_fx.bam
       """
 }
