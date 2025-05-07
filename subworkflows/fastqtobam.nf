@@ -35,7 +35,9 @@ workflow FASTQ_TO_BAM {
         .set  { ch_fixmate }
   
     MARKDUP (ch_fixmate)
-        .set  { ch_final_bam }
+
+    MARKDUP.out.bam
+        .set { ch_final_bam }
 
     emit:
     ch_final_bam

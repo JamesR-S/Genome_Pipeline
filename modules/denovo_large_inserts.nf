@@ -9,7 +9,7 @@ process DENOVO_LARGE_INSERTS {
       tuple val(id), val(sex), val(trio_ids), file("*.csv")
     script:
       """
-      java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} FindLargeInsertSizes \\
+      java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} FindLargeInsertSizesNF \\
         ${bam[0]} \\
         ${bam[0]} \\
         ${bam[1]} \\

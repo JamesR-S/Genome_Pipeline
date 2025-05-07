@@ -2,6 +2,7 @@
 process BWA_MEM {
     cpus 16
     tag "${id}"
+    stageInMode 'copy'
     module 'SAMtools/1.17-GCC-12.2.0'
 
     input:
@@ -21,7 +22,7 @@ process BWA_MEM {
       ${params.bwa} mem -t ${task.cpus} -M \
         -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
         ${params.referenceFasta} ${fastq1} ${fastq2} \
-      | samtools view   -u -@${task.cpus} -                \\
-      | samtools sort   -n -@${task.cpus} -l 1 -o ${id}_${flowcell}_ns.bam
+      | samtools view   -u -@ ${task.cpus} -                \\
+      | samtools sort   -n -@ ${task.cpus} -l 1 -o ${id}_${flowcell}_ns.bam
       """
 }

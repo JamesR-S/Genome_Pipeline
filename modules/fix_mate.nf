@@ -5,8 +5,7 @@ process FIXMATE {
     tag "${id}"
 
     input:
-      tuple val(id), val(sex), val(family), val(trio),
-            val(famSampleCount), file(bam)
+      tuple val(id), val(sex), val(family), val(trio), val(laneCount), val(famSampleCount), file(bam)
 
     output:
       tuple val(id), val(sex), val(family), val(trio),
@@ -15,6 +14,6 @@ process FIXMATE {
     script:
       """
       echo "[${id}] samtools fixmate"
-      samtools fixmate -m -@${task.cpus} ${bam} ${id}_fx.bam
+      samtools fixmate -m -@ ${task.cpus} ${bam} ${id}_fx.bam
       """
 }
