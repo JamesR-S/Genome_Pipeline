@@ -5,11 +5,11 @@ process DEEP_VARIANT {
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(
         path: { "${params.batchDir}/r04_vcfs" },
-        pattern: "*.vcf.gz",
+        pattern: 'regex:.*(?<!\\.g)\\.vcf\\.gz$',
         mode: 'copy')
 
     publishDir(
-        path: { "${params.batchDir}/r03_gvcfs" },
+        path: { "${params.batchDir}/r04_gvcfs" },
         pattern: "*.g.vcf.gz",
         mode: 'copy')
     

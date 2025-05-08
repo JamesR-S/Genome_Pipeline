@@ -4,7 +4,6 @@ process VEP {
     cpus 16
     container 'docker://ensemblorg/ensembl-vep'
     containerOptions "-B ${params.vepData}:/data"
-    publishDir "${params.batchDir}/r04_vep", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
     output:
