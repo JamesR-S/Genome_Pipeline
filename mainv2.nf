@@ -6,6 +6,7 @@ include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
 include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
+include { DEEP_TRIO_DE_NOVO } from './subworkflows/deep_trio_de_novo.nf'
 include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
 include { FASTQ_TO_BAM_PARABRICKS } from './subworkflows/fastqtobam_parabricks.nf'
 include { SNV_INDEL_CALLING_GPU } from './subworkflows/snv_indel_calling_gpu.nf'
@@ -13,6 +14,7 @@ include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
 include { QC } from './subworkflows/qc.nf'
+include { CNV_CALLING } from './subworkflows/cnv_calling.nf'
 include { ANNOTATION } from './subworkflows/annotation.nf'
 include { CYTOMEGALOVIRUS } from './subworkflows/cytomegalovirus.nf'
 // Helper function: parse one line of "key=value" pairs
@@ -71,6 +73,7 @@ workflow {
             FASTQ_TO_BAM.out.set { ch_final_bam }
       }
       
+      CNV_CALLING (ch_final_bam, ch_ref_fasta,ch_ref_fai)
 
       CYTOMEGALOVIRUS (ch_final_bam, ch_check_fastq)
 
@@ -113,5 +116,10 @@ workflow {
 
       ANNOTATION(ch_combined_vcf)
 
+      if (params.denovocnn) {
       TRIO_DE_NOVO (ch_final_bam, ch_single_sample_vcf, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx)
+      }
+      else {
+      DEEP_TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
+      }
 }

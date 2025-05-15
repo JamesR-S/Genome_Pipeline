@@ -1,7 +1,6 @@
 #!/usr/bin/env nextflow
 process FIXMATE {
     cpus 16
-    memory '256 GB'
     container 'mgibio/samtools:v1.21-noble'
     tag "${id}"
 

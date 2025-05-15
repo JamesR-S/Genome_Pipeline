@@ -1,7 +1,7 @@
 process DEEP_TRIO {
     tag { trio_ids.join('-') }
     cpus 16
-    container 'docker://google/deepvariant:deeptrio-1.8.0'
+    container 'docker://google/deepvariant:deeptrio-1.9.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     
     publishDir "${params.batchDir}/r04_deep_trio", mode: 'copy'
@@ -27,10 +27,7 @@ process DEEP_TRIO {
         --sample_name_parent1 "\$(basename ${bam[1]})" \
         --sample_name_parent2 "\$(basename ${bam[2]})" \
         --num_shards 16  \
-        --intermediate_results_dir intermediate_results_dir \
-        --output_gvcf_child \$(basename ${bam[0]})_proband.g.vcf.gz \
-        --output_gvcf_parent1 \$(basename ${bam[1]})_father.g.vcf.gz \
-        --output_gvcf_parent2 \$(basename ${bam[2]})_mother.g.vcf.gz
+        --intermediate_results_dir intermediate_results_dir 
 
         bcftools index \$(basename ${bam[0]}).vcf.gz
         bcftools index \$(basename ${bam[1]}).vcf.gz
@@ -38,8 +35,9 @@ process DEEP_TRIO {
       """
 }
 
-process DEEP_TRIO_DENOVO {
+process FILTER_DENOVO {
   tag { trio_ids.join('-') }
+  publishDir "${params.batchDir}/r04_deep_trio", mode: 'copy'
   cpus 16
     input:
     tuple val(id), val(sex), val(trio_ids), file(proband_vcfs), file(father_vcfs), file(mother_vcfs), file(proband_vcfscis), file(father_vcfscis), file(mother_vcfscis)

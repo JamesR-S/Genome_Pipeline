@@ -1,16 +1,16 @@
 process DEEP_VARIANT {
     tag "${id}"
     cpus 16
-    container 'docker://google/deepvariant:1.8.0'
+    container 'docker://google/deepvariant:1.9.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(
         path: { "${params.batchDir}/r04_vcfs" },
-        pattern: 'regex:.*(?<!\\.g)\\.vcf\\.gz$',
+        pattern: ['regex:.*(?<!\\.g)\\.vcf\\.gz$','regex:.*(?<!\\.g)\\.vcf\\.gz\\.csi$'],
         mode: 'copy')
 
     publishDir(
         path: { "${params.batchDir}/r04_gvcfs" },
-        pattern: "*.g.vcf.gz",
+        pattern: ["*.g.vcf.gz"],["*.g.vcf.gz.csi"],
         mode: 'copy')
     
     input:
