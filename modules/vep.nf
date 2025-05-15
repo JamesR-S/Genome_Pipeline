@@ -2,7 +2,7 @@
 process VEP {
     tag "${family}"
     cpus 16
-    container 'docker://ensemblorg/ensembl-vep'
+    container 'docker://ensemblorg/ensembl-vep:release_113.4'
     containerOptions "-B ${params.vepData}:/data"
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -16,7 +16,7 @@ process VEP {
         --plugin AlphaMissense,file=/data/AlphaMissense_hg38.tsv.gz \
         --plugin REVEL,file=/data/new_tabbed_revel_grch38.tsv.gz \
         --plugin NMD \
-        --plugin UTRAnnotator,file=/data/uORF_starts_ends_GRCh38_PUBLIC.txt \
+        --plugin UTRAnnotator,file=/data/uORF_5UTR_GRCh38_PUBLIC.txt \
         --plugin LoF,loftee_path:/data/plugins/ \
         --dir_plugins /data/plugins/ \
         --plugin LOEUF,file=/data/loeuf_dataset_grch38.tsv.gz,match_by=transcript \

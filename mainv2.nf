@@ -7,6 +7,8 @@ include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
 include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
 include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
+include { FASTQ_TO_BAM_PARABRICKS } from './subworkflows/fastqtobam_parabricks.nf'
+include { SNV_INDEL_CALLING_GPU } from './subworkflows/snv_indel_calling_gpu.nf'
 include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
@@ -60,9 +62,15 @@ workflow {
 
       QC(ch_parsed)
       QC.out.set { ch_check_fastq }
-
-      FASTQ_TO_BAM (ch_parsed)
-      FASTQ_TO_BAM.out.set { ch_final_bam }
+      if (params.gpu) {
+            FASTQ_TO_BAM_PARABRICKS (ch_parsed)
+            FASTQ_TO_BAM_PARABRICKS.out.set { ch_final_bam }
+            }
+      else {
+            FASTQ_TO_BAM (ch_parsed)
+            FASTQ_TO_BAM.out.set { ch_final_bam }
+      }
+      
 
       CYTOMEGALOVIRUS (ch_final_bam, ch_check_fastq)
 
@@ -74,17 +82,36 @@ workflow {
 
       COVERAGE (ch_final_bam,ch_control)
 
-      SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
-      SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
-            .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
-      .set { ch_singleton_vcf }
+      if (params.gpu) {
+            SNV_INDEL_CALLING_GPU(ch_final_bam, ch_ref_fasta, ch_ref_fai)
+            SNV_INDEL_CALLING_GPU.out.single_sample.filter { row -> row[3] < 2 }
+                  .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
+            .set { ch_singleton_vcf }
 
-      SNV_INDEL_CALLING.out.family.mix(ch_singleton_vcf)
-      .set { ch_combined_vcf }
+            SNV_INDEL_CALLING_GPU.out.family.mix(ch_singleton_vcf)
+            .set { ch_combined_vcf }
+
+            SNV_INDEL_CALLING_GPU.out.single_sample
+                  .set { ch_single_sample_vcf }
+      }
+      else {
+            SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
+            SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
+                  .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
+            .set { ch_singleton_vcf }
+
+            SNV_INDEL_CALLING.out.family.mix(ch_singleton_vcf)
+            .set { ch_combined_vcf }
+
+            SNV_INDEL_CALLING.out.single_sample
+                  .set { ch_single_sample_vcf }
+      }
+
+      
 
       HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
 
       ANNOTATION(ch_combined_vcf)
 
-      TRIO_DE_NOVO (ch_final_bam, SNV_INDEL_CALLING.out.single_sample, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx)
+      TRIO_DE_NOVO (ch_final_bam, ch_single_sample_vcf, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx)
 }

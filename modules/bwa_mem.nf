@@ -25,4 +25,5 @@ process BWA_MEM {
       | samtools view   -u -@ ${task.cpus} -                \\
       | samtools sort   -n -@ ${task.cpus} -l 1 -o ${id}_${flowcell}_ns.bam
       """
+      
 }

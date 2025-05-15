@@ -19,7 +19,7 @@ process MARKDUP {
       samtools sort -@ ${task.cpus} -l 1 -o ${id}_pos.bam ${fxbam}
 
       echo "[${id}] samtools markdup (remove dups, stats)"
-      samtools markdup -@ ${task.cpus} -r -s -d 100 \
+      samtools markdup -@ ${task.cpus} -s -d 100 \
           -f ${id}.markdup_metrics ${id}_pos.bam ${id}.bam
 
       samtools index -@ ${task.cpus} ${id}.bam
