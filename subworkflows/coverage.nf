@@ -14,7 +14,8 @@ workflow COVERAGE {
     main:
     ch_final_bam
         .collect(flat: false)
-        .map { rows ->              
+        .map { rows ->
+        rows.sort { it[0] }              
         tuple( rows.collect{ it[0] },   
                rows.collect{ it[1] },   
                rows.collect{ it[2] },   
