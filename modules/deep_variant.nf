@@ -10,7 +10,7 @@ process DEEP_VARIANT {
 
     publishDir(
         path: { "${params.batchDir}/r04_gvcfs" },
-        pattern: ["*.g.vcf.gz"],["*.g.vcf.gz.csi"],
+        pattern: ["*.g.vcf.gz","*.g.vcf.gz.csi"],
         mode: 'copy')
     
     input:
