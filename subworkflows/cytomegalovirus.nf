@@ -25,7 +25,8 @@ workflow CYTOMEGALOVIRUS {
             tuple(id, sam, cfq)
         }
         .collect(flat: false)
-        .map { rows ->              
+        .map { rows ->
+        rows.sort { it[0] }              
         tuple( rows.collect{ it[0] },   
                rows.collect{ it[1] },   
                rows.collect{ it[2] })  

@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 process VCF_FILTER {
     tag "${family}"
+    cpus 4
     module 'BCFtools/1.17-GCC-12.2.0'
     publishDir "${params.batchDir}/r04_vcfs", mode: 'copy'
     input:
@@ -9,7 +10,8 @@ process VCF_FILTER {
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${family}_filtered.vcf.gz"), file("${family}_filtered.vcf.gz.csi")
     script:
       """
-      bcftools isec -C -w1 -Ou ${vcf} ${params.gnomadSNP} \
+      bcftools view -Ov -o ${family}.vcf ${vcf}
+      java -Xmx5g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} FilterVcfDiscordance ${family}.vcf ${params.gnomadSNPFilter} \
       | bcftools +fill-tags -Ou -- -t FORMAT/VAF \
       | bcftools +setGT -Ou -- -t q  -n . \
       -i 'FMT/DP<8 || FMT/GQ<20 || (GT="0/1" && (FMT/VAF<0.2 || FMT/VAF>0.8))' \
