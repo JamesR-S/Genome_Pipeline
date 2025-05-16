@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 process HOMOZYGOSITY {
     tag "${family}"
+    cpus 4
     module 'BCFtools/1.17-GCC-12.2.0'
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
@@ -20,6 +21,7 @@ process HOMOZYGOSITY {
 process SHARED_HAPLOTYPES {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
+    cpus 4
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -40,6 +42,7 @@ process SHARED_HAPLOTYPES {
 process UPD {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
+    cpus 4
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -60,5 +63,24 @@ process UPD {
               > "\${ids[\${i}]}-\${ids[\${j}]}_UPD.csv"
         done
       done
+      """
+}
+
+process BATCH_HOMOZYGOSITY {
+    tag { id.join('-') }
+    module 'BCFtools/1.17-GCC-12.2.0'
+    cpus 4
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+    input:
+      tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
+    output:
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("homozygosity.csv")
+    script:
+      """
+      vcfs=( ${vcf.join(" ")} )
+      for i in \${vcfs[@]}; do
+           tabix -p vcf \${i}
+      done
+      java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} VcfToHomozygosity7 ${vcf.join(" ")} -com -dp 80 > homozygosity.csv
       """
 }
