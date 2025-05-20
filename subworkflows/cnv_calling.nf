@@ -1,4 +1,6 @@
 include { MANTA } from '../modules/manta.nf'
+include { SURVINDEL2 } from '../modules/survindel2.nf'
+include { PARLIAMENT2 } from '../modules/parliament2.nf'
 workflow CNV_CALLING {
     take:
     ch_final_bam
@@ -36,5 +38,10 @@ workflow CNV_CALLING {
 
     MANTA (family_bams, ch_ref_fasta,ch_ref_fai,manta_bed,manta_bed_idx)
         .set { ch_manta_vcf }
+
+    SURVINDEL2 (ch_final_bam, ch_ref_fasta,ch_ref_fai)
+
+    PARLIAMENT2 (ch_final_bam, ch_ref_fasta,ch_ref_fai)
+        .set { ch_parliament_vcf }
 
     }

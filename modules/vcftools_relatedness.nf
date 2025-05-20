@@ -13,7 +13,7 @@ process RELATEDNESS {
       vcfs=( ${vcf.join(" ")} )
       for i in \${vcfs[@]}; do
            tabix -p vcf \${i} ;
-           vcftools --relatedness2 -c --vcf \$i >> relatedness2.csv
+           vcftools --relatedness2 -c --vcf \${i} >> relatedness2.csv
       done    
       """
 }

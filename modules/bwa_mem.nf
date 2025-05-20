@@ -2,7 +2,7 @@
 process BWA_MEM {
     cpus 16
     tag "${id}"
-    // stageInMode 'copy'
+    stageInMode 'copy'
     module 'SAMtools/1.17-GCC-12.2.0'
 
     input:

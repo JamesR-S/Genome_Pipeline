@@ -1,6 +1,7 @@
 process DEEP_TRIO {
     tag { trio_ids.join('-') }
-    cpus 16
+    queue 'pq'
+    cpus 20
     container 'docker://google/deepvariant:deeptrio-1.9.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     
@@ -20,18 +21,22 @@ process DEEP_TRIO {
         --reads_child=${bam[0]} \
         --reads_parent1=${bam[1]} \
         --reads_parent2=${bam[2]} \
-        --output_vcf_child \$(basename ${bam[0]})_proband.vcf.gz \
-        --output_vcf_parent1 \$(basename ${bam[1]})_father.vcf.gz \
-        --output_vcf_parent2 \$(basename ${bam[2]})_mother.vcf.gz \
+        --output_vcf_child \$(basename ${bam[0]} .bam)_proband.vcf.gz \
+        --output_vcf_parent1 \$(basename ${bam[1]} .bam)_father.vcf.gz \
+        --output_vcf_parent2 \$(basename ${bam[2]} .bam)_mother.vcf.gz \
+        --output_gvcf_child \$(basename ${bam[0]} .bam)_proband.g.vcf.gz \
+        --output_gvcf_parent1 \$(basename ${bam[1]} .bam)_father.g.vcf.gz \
+        --output_gvcf_parent2 \$(basename ${bam[2]} .bam)_mother.g.vcf.gz \
         --sample_name_child "\$(basename ${bam[0]})" \
         --sample_name_parent1 "\$(basename ${bam[1]})" \
         --sample_name_parent2 "\$(basename ${bam[2]})" \
         --num_shards 16  \
-        --intermediate_results_dir intermediate_results_dir 
+        --intermediate_results_dir intermediate_results_dir \
+        --regions "chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr20 chr21 chr22 chrX chrY"
 
-        bcftools index \$(basename ${bam[0]}).vcf.gz
-        bcftools index \$(basename ${bam[1]}).vcf.gz
-        bcftools index \$(basename ${bam[2]}).vcf.gz
+        bcftools index \$(basename ${bam[0]} .bam)_proband.vcf.gz
+        bcftools index \$(basename ${bam[1]} .bam)_mother.vcf.gz
+        bcftools index \$(basename ${bam[2]} .bam)_father.vcf.gz
       """
 }
 

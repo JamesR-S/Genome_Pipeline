@@ -1,8 +1,9 @@
 #!/usr/bin/env nextflow
 process MANTA {
     cpus 16
+    memory '100G'
     tag { id.join('-') }
-    container 'informationsea/manta:1.6.0'
+    container 'https://depot.galaxyproject.org/singularity/manta:1.6.0--h9ee0642_1'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(path: { "${params.batchDir}/r04_manta" },
         mode: 'copy')
@@ -14,7 +15,7 @@ process MANTA {
       file(mantaBed)
       file(mantaBedIDX)
     output:
-      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.SV.vcf.gz"), file("*.SV.vcf.gz.csi")
+      tuple val(id), val(sex), val(family), val(famSampleCount), file("*.SV.vcf.gz"), file("*.SV.vcf.gz.tbi")
 
     script:
 
@@ -28,14 +29,16 @@ process MANTA {
       """
       mkdir manta_rundir
 
-      /manta-1.6.0.centos6_x86_64/bin/configManta.py \
-        --referenceFasta ${fasta} \
+      configManta.py \
+        --reference ${fasta} \
         --runDir manta_rundir \
         --callRegions ${mantaBed} \
         ${inBamStr}
-
-      manta_rundir/runWorkflow.py
+      sed -i "s/smtplib\\.SMTP('localhost')/smtplib.SMTP('localhost', timeout=2)/" manta_rundir/runWorkflow.py
+      python manta_rundir/runWorkflow.py -j ${task.cpus} -m local -g 100
       mv manta_rundir/results/variants/diploidSV.vcf.gz ${id.join("-")}.SV.vcf.gz
+      mv manta_rundir/results/variants/diploidSV.vcf.gz.tbi ${id.join("-")}.SV.vcf.gz.tbi
+
       """
 
 }
