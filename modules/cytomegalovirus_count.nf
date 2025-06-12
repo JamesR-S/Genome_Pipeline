@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process CYTOMEGALOVIRUS_COUNT {
     cpus 4
-    tag { id.join('-') }
+    tag "batch_${id[0]}"
     publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy'
     input:
       tuple val(id), file(sam), file(cfq)

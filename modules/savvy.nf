@@ -67,7 +67,7 @@ process UPD {
 }
 
 process BATCH_HOMOZYGOSITY {
-    tag { id.join('-') }
+    tag "batch_${id[0]}"
     module 'BCFtools/1.17-GCC-12.2.0'
     cpus 4
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'

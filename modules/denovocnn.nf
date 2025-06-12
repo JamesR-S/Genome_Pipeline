@@ -16,8 +16,11 @@ process DENOVOCNN {
       tuple val(id), val(trio_ids), file("${trio_ids.join('-')}_denovos.filtered.txt")
     script:
       """
-      bcftools isec -C ${vcf[0]} ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt
-      split -d -l 10000 --additional-suffix=.txt all_variants.txt part_variants
+      bcftools view -f PASS ${vcf[0]} -Oz -o filtered.vcf.gz
+      bcftools index filtered.vcf.gz
+
+      bcftools isec -C filtered.vcf.gz ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt
+      split -d -n l/16 -a 2 --additional-suffix=.txt all_variants.txt part_variants
 
       parallel --jobs \$(nproc) "
       echo 'Processing {}' ; \
@@ -36,7 +39,7 @@ process DENOVOCNN {
 
       (head -n1 predictions_part_variants00.csv &&  \
       tail -q -n +2 predictions_part_variants*.csv) \
-        > ${trio_ids.join('-')}_denovos.filtered.txt
+      | awk '\$5 >= 0.5' > ${trio_ids.join('-')}_denovos.filtered.txt
 
         
       """

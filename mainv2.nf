@@ -17,6 +17,7 @@ include { QC } from './subworkflows/qc.nf'
 include { CNV_CALLING } from './subworkflows/cnv_calling.nf'
 include { ANNOTATION } from './subworkflows/annotation.nf'
 include { CYTOMEGALOVIRUS } from './subworkflows/cytomegalovirus.nf'
+include { BATCH_RELATEDNESS } from './subworkflows/batch_relatedness.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -110,7 +111,7 @@ workflow {
                   .set { ch_single_sample_vcf }
       }
 
-      
+      BATCH_RELATEDNESS (ch_combined_vcf)      
 
       HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
 

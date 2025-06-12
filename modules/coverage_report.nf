@@ -1,5 +1,5 @@
 process COVERAGE_REPORT {
-    tag { id.join('-') }
+    tag "batch ${id[0]}"
     cpus 1
     publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     

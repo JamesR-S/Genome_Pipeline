@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 process RELATEDNESS {
-    tag { id.join('-') }
+    tag "batch_${id[0]}"
     module 'VCFtools/0.1.16-GCC-11.2.0'
     cpus 1
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
@@ -13,7 +13,7 @@ process RELATEDNESS {
       vcfs=( ${vcf.join(" ")} )
       for i in \${vcfs[@]}; do
            tabix -p vcf \${i} ;
-           vcftools --relatedness2 -c --vcf \${i} >> relatedness2.csv
+           vcftools --relatedness2 -c --gzvcf \${i} >> relatedness2.csv
       done    
       """
 }

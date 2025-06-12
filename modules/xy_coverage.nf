@@ -1,5 +1,5 @@
 process XY_COVERAGE {
-    tag { ids.join('-') }
+    tag "batch_${ids[0]}-${ids[-1]}"
     cpus 1
     publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     

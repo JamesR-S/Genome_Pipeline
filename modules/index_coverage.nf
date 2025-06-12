@@ -1,5 +1,5 @@
 process INDEX_COVERAGE {
-    tag { id.join('-') }
+    tag "batch_${id[0]}"
     cpus 1
     publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     
