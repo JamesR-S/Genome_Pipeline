@@ -12,8 +12,8 @@ process VCF_FILTER {
       """
       bcftools view -Ov -o ${family}.vcf ${vcf}
       java -Xmx5g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} FilterVcfDiscordance ${family}.vcf ${params.gnomadSNPFilter} \
-      | bcftools +fill-tags -Ou -- -t FORMAT/VAF \
-      | bcftools view -Oz -o ${family}_filtered.vcf.gz
+      | bcftools +fill-tags -Ou -- -t FORMAT/VAF,INFO/AC,INFO/AN \
+      | bcftools view --min-ac 1 --exclude-uncalled -Oz -o ${family}_filtered.vcf.gz
 
       bcftools index ${family}_filtered.vcf.gz
       """

@@ -20,7 +20,7 @@ process DENOVOCNN {
       bcftools index filtered.vcf.gz
 
       bcftools isec -C filtered.vcf.gz ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt
-      split -d -n l/16 -a 2 --additional-suffix=.txt all_variants.txt part_variants
+      split -d -n l/\$(nproc) -a 2 --additional-suffix=.txt all_variants.txt part_variants
 
       parallel --jobs \$(nproc) "
       echo 'Processing {}' ; \
