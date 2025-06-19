@@ -1,8 +1,8 @@
-process ANCESTRY {
+rocess ANCESTRY {
     tag "${id}"
     cpus 16
     container 'jamesrusssilsby/gnomadtools:latest'
-    containerOptions{"-B ${params.tmpDir} -B ${params.resourcesDir}/gnomad_pca"}
+    containerOptions{"-B ${params.resourcesDir}/gnomad_pca"}
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(gvcf), file(csi)
@@ -13,6 +13,7 @@ process ANCESTRY {
 
     script:
     """
+    mkdir \$PWD/temp
     python3 <<EOF
 import onnx
 import hail as hl
@@ -31,11 +32,11 @@ v3_num_pcs = 16
 v3_min_prob = 0.75
 
 hl.init(default_reference='GRCh38',
-    tmp_dir="${params.tmpDir}", 
+    tmp_dir="\$PWD/temp", 
     spark_conf={
-        "spark.driver.extraJavaOptions"  : f"-Djava.io.tmpdir=${params.tmpDir}",
-        "spark.executor.extraJavaOptions": f"-Djava.io.tmpdir=${params.tmpDir}",
-        "spark.local.dir" : "${params.tmpDir}",
+        "spark.driver.extraJavaOptions"  : f"-Djava.io.tmpdir=\$PWD/temp",
+        "spark.executor.extraJavaOptions": f"-Djava.io.tmpdir=\$PWD/temp",
+        "spark.local.dir" : "\$PWD/temp",
     })
 
 gnomad_v3_loadings = (

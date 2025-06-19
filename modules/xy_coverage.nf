@@ -2,7 +2,8 @@ process XY_COVERAGE {
     tag "batch_${ids[0]}-${ids[-1]}"
     cpus 1
     publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
-    
+    container 'docker://amazoncorretto:21.0.7'
+    containerOptions "-B ${params.javaDir} -B ${params.gatkJar}"    
     input:
       tuple val(ids), val(sex), file(coverage)
     output:
@@ -20,7 +21,7 @@ process XY_COVERAGE {
                      }
                      .join(' ') }"
 
-      java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir} XYCoverageCHRPrefix \\
+      java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir}:${params.javaDir}/jars/htsjdk-4.2.0.jar XYCoverageCHRPrefix \\
         ${coverage} \\
         -v genome \\
         \$id_flags \\
