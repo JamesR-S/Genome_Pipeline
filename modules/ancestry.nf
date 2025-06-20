@@ -1,4 +1,4 @@
-rocess ANCESTRY {
+process ANCESTRY {
     tag "${id}"
     cpus 16
     container 'jamesrusssilsby/gnomadtools:latest'
