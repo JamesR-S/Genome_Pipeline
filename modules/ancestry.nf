@@ -2,7 +2,7 @@ process ANCESTRY {
     tag "${id}"
     cpus 16
     container 'jamesrusssilsby/gnomadtools:latest'
-    containerOptions{"-B ${params.resourcesDir}/gnomad_pca"}
+    containerOptions{"-B ${params.resourcesDir}/gnomad_pca -B ${HOME}:${HOME}"}
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(gvcf), file(csi)
@@ -14,9 +14,11 @@ process ANCESTRY {
     script:
     """
     mkdir \$PWD/temp
+    mkdir \$PWD/ivy_cache
     python3 <<EOF
 import onnx
 import hail as hl
+import os
 from hail.vds.combiner import transform_gvcf
 from gnomad.sample_qc.ancestry import (
     apply_onnx_classification_model,
@@ -31,13 +33,16 @@ read_if_exists = True
 v3_num_pcs = 16
 v3_min_prob = 0.75
 
-hl.init(default_reference='GRCh38',
-    tmp_dir="\$PWD/temp", 
+hl.init(
+    tmp_dir=f"{os.getcwd()}/temp",
     spark_conf={
-        "spark.driver.extraJavaOptions"  : f"-Djava.io.tmpdir=\$PWD/temp",
-        "spark.executor.extraJavaOptions": f"-Djava.io.tmpdir=\$PWD/temp",
-        "spark.local.dir" : "\$PWD/temp",
-    })
+        "spark.driver.extraJavaOptions": f"-Djava.io.tmpdir={os.getcwd()}/temp",
+        "spark.executor.extraJavaOptions": f"-Djava.io.tmpdir={os.getcwd()}/temp",
+        "spark.local.dir": f"{os.getcwd()}/temp",
+        "spark.hadoop.ivy.cache.dir": f"{os.getcwd()}/ivy_cache"
+    }
+)
+hl.default_reference('GRCh38')
 
 gnomad_v3_loadings = (
     "${params.resourcesDir}/gnomad_pca/gnomad.v3.1.pca_loadings.ht"
