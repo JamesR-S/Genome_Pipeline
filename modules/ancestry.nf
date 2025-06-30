@@ -38,6 +38,8 @@ hl.init(
     spark_conf={
         "spark.driver.extraJavaOptions": f"-Djava.io.tmpdir={os.getcwd()}/temp",
         "spark.executor.extraJavaOptions": f"-Djava.io.tmpdir={os.getcwd()}/temp",
+        "spark.driver.extraJavaOptions": f"-cache={os.getcwd()}/ivy_cache",
+        "spark.executor.extraJavaOptions": f"-cache={os.getcwd()}/ivy_cache",
         "spark.local.dir": f"{os.getcwd()}/temp",
         "spark.hadoop.ivy.cache.dir": f"{os.getcwd()}/ivy_cache"
     }

@@ -13,7 +13,7 @@ process VEP {
       vep --dir /data --fork 16 --cache --offline --assembly GRCh38 --regulatory --fasta /data/homo_sapiens/114_GRCh38/Homo_sapiens.GRCh38.dna.toplevel.fa.gz --format vcf --vcf --force_overwrite \
         --input_file ${vcf} \
         --output_file ${family}_vep_annotated.vcf \
-        --dir_plugins /data/plugins/ \        
+        --dir_plugins /data/plugins/ \
         --plugin AlphaMissense,file=/data/AlphaMissense_hg38.tsv.gz \
         --plugin REVEL,file=/data/new_tabbed_revel_grch38.tsv.gz \
         --plugin NMD \
