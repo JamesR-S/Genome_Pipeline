@@ -25,8 +25,8 @@ micromamba create \
 	-n genome_sequencing \
 	-c bioconda \
 	-c conda-forge \
-	nextflow \
-	apptainer
+	nextflow=25.04.2 \
+	apptainer=1.4.1
 ```
 
 To activate the environment you then run `micromamba activate genome_sequencing`.
@@ -46,7 +46,7 @@ After this you will need to log out and back in again to the server or run `sour
 
 ### Using tmux (optional, but highly recommended)
 
-Because the pipeline takes 1-3 days to run (depending on batch size) it is highly reccomended to run it within a `tmux` session. This means that if you get disconnected from the server the pipeline will continue to run and you can return to the terminal session it is running in at any time.
+Because the pipeline takes 1-3 days to run (depending on batch size) it is highly recommended to run it within a `tmux` session. This means that if you get disconnected from the server the pipeline will continue to run and you can return to the terminal session it is running in at any time.
 
 To do this first install tmux with `micromamba install tmux` then start a session with the command `tmux`. The session can be left at any time without killing the job by using the key combination `ctrl` + `b`, followed by `d` and rejoined at any time by running `tmux attach`. To kill the the session simply run `exit`. For more information on running tmux run `man tmux`.
 
