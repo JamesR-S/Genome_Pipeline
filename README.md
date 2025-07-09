@@ -23,10 +23,8 @@ Once micrimamba has been installed and loaded, create an environment with the re
 ```
 micromamba create \
 	-n genome_sequencing \
-	-c bioconda \
-	-c conda-forge \
-	nextflow=25.04.2 \
-	apptainer=1.4.1
+	bioconda::nextflow=25.04.2 \
+	conda-forge::apptainer=1.4.1
 ```
 
 To activate the environment you then run `micromamba activate genome_sequencing`.
