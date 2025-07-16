@@ -1,5 +1,5 @@
 include { PARABRICKS_FQ2BAM } from '../modules/parabricks_fq2bam.nf'
-include { RMDUP } from '../modules/remove_duplicates.nf'
+include { BAM2CRAM } from '../modules/bam_to_cram.nf'
 workflow FASTQ_TO_BAM_PARABRICKS {
     take:
     ch_parsed
@@ -21,8 +21,8 @@ workflow FASTQ_TO_BAM_PARABRICKS {
     PARABRICKS_FQ2BAM (ch_grouped_fq)
         .set { ch_md_bam }
 
-    RMDUP (ch_md_bam)
-        .set { ch_final_bam }
+    BAM2CRAM (ch_md_bam)
+        .set { ch_final_cram }
     emit:
-    ch_final_bam
+    ch_final_cram
 }

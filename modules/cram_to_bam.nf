@@ -1,6 +1,6 @@
 process CRAM2BAM {
-    tag       "${id}"
-    cpus      4
+    tag "${id}"
+    cpus 4
     container 'mgibio/samtools:v1.21-noble'
 
     input:

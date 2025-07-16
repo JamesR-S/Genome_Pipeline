@@ -1,4 +1,4 @@
-process RMDUP {
+process BAM2CRAM {
     cpus 8
     publishDir "${params.batchDir}/r04_assembly", mode: 'copy'
     container 'mgibio/samtools:v1.21-noble'
@@ -9,11 +9,11 @@ process RMDUP {
             val(famSampleCount), file(mdbam), file(mdbai)
 
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.bam"), file("${id}.bam.bai")
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.cram"), file("${id}.cram.crai")
 
     script:
       """
-        samtools view -@ 8 -h -b -F 0x400 ${mdbam} -o ${id}.bam
-        samtools index ${id}.bam
+        samtools view -@ 8 -T ${params.referenceFasta} -O cram -o ${id}.cram ${mdbam}
+        samtools index ${id}.cram
       """
 }
