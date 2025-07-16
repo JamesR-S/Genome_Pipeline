@@ -18,6 +18,7 @@ include { CNV_CALLING } from './subworkflows/cnv_calling.nf'
 include { ANNOTATION } from './subworkflows/annotation.nf'
 include { CYTOMEGALOVIRUS } from './subworkflows/cytomegalovirus.nf'
 include { BATCH_RELATEDNESS } from './subworkflows/batch_relatedness.nf'
+include {CRAM2BAM} from './modules/cram_to_bam.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -67,13 +68,16 @@ workflow {
       QC.out.set { ch_check_fastq }
       if (params.gpu) {
             FASTQ_TO_BAM_PARABRICKS (ch_parsed)
-            FASTQ_TO_BAM_PARABRICKS.out.set { ch_final_bam }
+            FASTQ_TO_BAM_PARABRICKS.out.set { ch_final_cram }
             }
       else {
             FASTQ_TO_BAM (ch_parsed)
-            FASTQ_TO_BAM.out.set { ch_final_bam }
+            FASTQ_TO_BAM.out.set { ch_final_cram }
       }
       
+      CRAM2BAM (ch_final_cram)
+      CRAM2BAM.out.set { ch_final_bam }
+
       CNV_CALLING (ch_final_bam, ch_ref_fasta,ch_ref_fai)
 
       CYTOMEGALOVIRUS (ch_final_bam, ch_check_fastq)

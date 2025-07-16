@@ -9,7 +9,7 @@ process MARKDUP {
             val(famSampleCount), file(fxbam)
 
     output:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.bam"), file("${id}.bam.bai"), emit: bam
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.cram"), file("${id}.cram.crai"), emit: cram
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.markdup_metrics"), emit: metrics
 
     script:
@@ -19,9 +19,10 @@ process MARKDUP {
       samtools sort -@ ${task.cpus} -l 1 -o ${id}_pos.bam ${fxbam}
 
       echo "[${id}] samtools markdup (remove dups, stats)"
-      samtools markdup -@ ${task.cpus} -s -d 100 \
-          -f ${id}.markdup_metrics ${id}_pos.bam ${id}.bam
-
-      samtools index -@ ${task.cpus} ${id}.bam
+      samtools sort -@ ${task.cpus} -l 1 -o - ${fxbam} |
+      samtools markdup -@ ${task.cpus} -s -d 100 -f ${id}.markdup_metrics - -  |
+      samtools view -@ ${task.cpus} -T ${params.referenceFasta} -O cram -o ${id}.cram -
+      
+      samtools index -@ ${task.cpus} ${id}.cram
       """
 }

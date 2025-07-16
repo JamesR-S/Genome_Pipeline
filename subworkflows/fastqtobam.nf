@@ -34,11 +34,11 @@ workflow FASTQ_TO_BAM {
     FIXMATE (ch_mix_bams)
         .set  { ch_fixmate }
   
-    MARKDUP (ch_fixmate)
+    MARKDUP (ch_fixmate,)
 
-    MARKDUP.out.bam
-        .set { ch_final_bam }
+    MARKDUP.out.cram
+        .set { ch_final_cram }
 
     emit:
-    ch_final_bam
+    ch_final_cram
 }
