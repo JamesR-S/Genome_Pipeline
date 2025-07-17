@@ -19,6 +19,7 @@ include { ANNOTATION } from './subworkflows/annotation.nf'
 include { CYTOMEGALOVIRUS } from './subworkflows/cytomegalovirus.nf'
 include { BATCH_RELATEDNESS } from './subworkflows/batch_relatedness.nf'
 include {CRAM2BAM} from './modules/cram_to_bam.nf'
+include {SPRING2FQ} from './modules/spring_to_fastq.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -43,10 +44,36 @@ def parseLineToTuple(String line) {
     
     return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, fq1, fq2 ]
 }
+
+def parseLineToTupleSpring(String line) {
+    def pairs = line.split(/;/)
+    def map   = [:]
+    pairs.each { kv ->
+       def (k,v) = kv.split(/=/,2)
+       map[k.trim()] = v.trim()
+    }
+    // Build the meta map
+    def id = map.sample   // or 'sample'
+    def platform = map.platform
+    def sex = map.sex
+    def family = map.family
+    def trio = map.trio
+    def flowcell = map.flowcell
+    def laneCount = map.sampleLaneCount.toInteger()
+    def famSampleCount = map.familySampleCount.toInteger()
+    def fq1_spring = new File(map.fastq1).name.replaceAll(/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$/, '.spring')
+    // Build the list of file() objects
+    def spring = file(params.batchDir+"/spring/"+fq1_spring)
+    
+    return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
+}
+
 params.batchDir = file(params.batchDir ?: '.')
 params.control = file(params.control ?: params.batchDir+"/control")
 
 workflow {
+
+      spring_dir = file(params.batchDir + "/spring")
 
       ch_control = file(params.control)
       ch_ref_fasta = file(params.referenceFasta)
@@ -57,21 +84,33 @@ workflow {
 
       CONTROL_PARSER (ch_control)
 
+      if (spring_dir.isDirectory()) {
+            CONTROL_PARSER.out.reads
+            .splitText()              
+            .filter { it }            
+            .map   { parseLineToTupleSpring(it) }
+            .set  { ch_spring }
 
-      CONTROL_PARSER.out.reads
+            SPRING2FQ (ch_spring)
+            SPRING2FQ.out.set { ch_fq }
+
+      } else {
+            CONTROL_PARSER.out.reads
             .splitText()              
             .filter { it }            
             .map   { parseLineToTuple(it) }
-            .set  { ch_parsed }
+            .set  { ch_fq }
+      }
 
-      QC(ch_parsed)
+      QC(ch_fq)
       QC.out.set { ch_check_fastq }
+      
       if (params.gpu) {
-            FASTQ_TO_BAM_PARABRICKS (ch_parsed)
+            FASTQ_TO_BAM_PARABRICKS (ch_fq)
             FASTQ_TO_BAM_PARABRICKS.out.set { ch_final_cram }
             }
       else {
-            FASTQ_TO_BAM (ch_parsed)
+            FASTQ_TO_BAM (ch_fq)
             FASTQ_TO_BAM.out.set { ch_final_cram }
       }
       
