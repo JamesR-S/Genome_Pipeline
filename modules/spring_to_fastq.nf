@@ -17,7 +17,7 @@ process SPRING2FQ {
 
     script:
       """
-      spring -d -i file.spring -o \$(basename ${spring} .spring)_1.fq \$(basename ${spring} .spring)_2.fq
+      spring -d -i ${spring} -o \$(basename ${spring} .spring)_1.fq \$(basename ${spring} .spring)_2.fq
       """
       
 }

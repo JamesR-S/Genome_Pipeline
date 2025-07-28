@@ -61,12 +61,25 @@ def parseLineToTupleSpring(String line) {
     def flowcell = map.flowcell
     def laneCount = map.sampleLaneCount.toInteger()
     def famSampleCount = map.familySampleCount.toInteger()
-    def fq1_spring = new File(map.fastq1).name.replaceAll(/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$/, '.spring')
-    // Build the list of file() objects
-    def spring = file(params.batchDir+"/spring/"+fq1_spring)
+    def fq1_name = new File(map.fastq1).name
+    def fq2_name = new File(map.fastq2).name
+
+    def (fq1_base, fq2_base) = [fq1_name, fq2_name].collect {
+        it.replaceFirst(/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$/, '')
+    }
+
+    // find the longest common prefix
+    int i = 0
+    while (i < fq1_name.size() && i < fq2_name.size() && fq1_name[i] == fq2_name[i]) {
+        i++
+    }
+    def common = fq1_name[0..<i].replaceFirst(/[_\.\-(_R)]+$/, '')  // trim trailing _.- if wanted
+
+    def springName = "${common}.spring"
+    def spring     = file("${params.batchDir}/spring/${springName}")
     
-    return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
-}
+        return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
+    }
 
 params.batchDir = file(params.batchDir ?: '.')
 params.control = file(params.control ?: params.batchDir+"/control")

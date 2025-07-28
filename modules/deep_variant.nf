@@ -4,15 +4,16 @@ process DEEP_VARIANT {
     time '12h'
     container 'docker://google/deepvariant:1.9.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
-    publishDir(
-        path: { "${params.batchDir}/r04_vcfs" },
-        pattern: ['regex:.*(?<!\\.g)\\.vcf\\.gz$','regex:.*(?<!\\.g)\\.vcf\\.gz\\.csi$'],
-        mode: 'copy')
-
-    publishDir(
-        path: { "${params.batchDir}/r04_gvcfs" },
-        pattern: ["*.g.vcf.gz","*.g.vcf.gz.csi"],
-        mode: 'copy')
+    publishDir (
+    path: "${params.batchDir}",
+    mode: 'copy',
+    overwrite: true,
+    saveAs: { fn ->                        
+        fn.endsWith('.g.vcf.gz') ? "r04_gvcfs/${fn}" :
+        fn.endsWith('.g.vcf.gz.csi') ? "r04_gvcfs/${fn}" :
+        "r04_vcfs/${fn}"
+    }
+)
     
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

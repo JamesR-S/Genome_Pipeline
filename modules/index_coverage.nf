@@ -3,6 +3,7 @@ process INDEX_COVERAGE {
     cpus 16
     publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     container 'docker://amazoncorretto:21.0.7'
+    containerOptions "-B ${params.javaDir} -B ${params.base}"
     input:
       tuple val(id), val(sex), file(coverage)
       file(control)

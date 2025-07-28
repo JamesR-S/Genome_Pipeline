@@ -10,7 +10,9 @@ process CHECK_FASTQ {
       tuple val(meta.id), val(meta.sex), val(meta.family), val(meta.famSampleCount), file("${meta.id}_checkFastq.txt")
     script:
     """
-    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq ${ fastq1.withIndex().collect { f1, idx -> "${f1} ${fastq2[idx]}" }.join(' ') } \\
+
+    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq2 ${ fastq1.withIndex().collect { f1, idx -> "${f1} ${fastq2[idx]}" }.join(' ') } \\
     > ${meta.id}_checkFastq.txt
+    
     """
 }

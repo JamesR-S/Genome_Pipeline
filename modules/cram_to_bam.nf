@@ -14,8 +14,7 @@ process CRAM2BAM {
       """
       set -euo pipefail
 
-      samtools view  -@ ${task.cpus} -T ${params.referenceFasta} -O bam ${cram} |
-      samtools sort  -@ ${task.cpus} -l 1 -o ${id}.bam -
+      samtools view  -@ ${task.cpus} -T ${params.referenceFasta} -O bam -o ${id}.bam ${cram} 
 
       samtools index -@ ${task.cpus} ${id}.bam
       """
