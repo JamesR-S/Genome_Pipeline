@@ -1,7 +1,9 @@
 #!/usr/bin/env nextflow
 process CHECK_FASTQ {
     tag "${meta.id}"
-    publishDir "${params.batchDir}/r04_metrics", mode: 'copy' 
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+    container 'docker://amazoncorretto:21.0.7'
+    containerOptions "-B ${params.javaDir} -B ${params.base}"
     input:
       // Accept a sample map
        tuple val(meta), file(fastq1), file(fastq2)
