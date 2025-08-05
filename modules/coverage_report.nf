@@ -1,7 +1,9 @@
 process COVERAGE_REPORT {
     tag "batch ${id[0]}"
     cpus 1
-    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+    container 'docker://amazoncorretto:21.0.7'
+    containerOptions "-B ${params.javaDir} -B ${params.base}"
     
     input:
       tuple val(id), val(sex), file(coverage)
