@@ -46,6 +46,16 @@ with open("${controlFile}", "r") as fh:
             }
             fastqRecords.append(record)
             sampleSet.add(tokens[1])
+        elif line.startswith("SPRING"):
+            record = {
+                "sample"  : tokens[1],
+                "platform": tokens[2],
+                "flowcell": tokens[3],
+                "fastq1"  : tokens[4].removesuffix(".spring"),
+                "fastq2"  : tokens[4].removesuffix(".spring")
+            }
+            fastqRecords.append(record)
+            sampleSet.add(tokens[1])
 
 # ----------------------------
 
