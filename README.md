@@ -41,7 +41,10 @@ micromamba create \
 	conda-forge::apptainer=1.4.1
 ```
 
-To activate the environment, you then run `micromamba activate genome_sequencing`.
+To activate the environment, you then run:
+```
+micromamba activate genome_sequencing`.
+```
 
 ### Setting up environment
 
