@@ -12,14 +12,28 @@ This guide will go through the set up for the pipeline and how to run it.
 
 ### Installing Dependencies
 
-The easiest way to install the dependencies is through micromamba. This can be installed with the following command:
+The easiest way to install the dependencies is through micromamba. This is **strongly recommended** (over conda) on ISCA, as conda may interfere with centrally managed conda installations.
 
+This can be installed with the following command:
 ```
 "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
 ```
 
-Once micrimamba has been installed and loaded, create an environment with the required dependencies using the following command:
+Once micromamba has been installed and loaded, you will need the `environment.yml` file before creating the environment.
+You can download and install the environment with the following commands:
+```
+wget https://raw.githubusercontent.com/JamesR-S/Genome_Pipeline/main/environment.yml
+micromamba env create -f environment.yml
+```
 
+If you encounter issues downloading the file, or if the repo is private, clone the repository instead:
+```
+git clone git@github.com:JamesR-S/Genome_Pipeline.git
+cd Genome_Pipeline
+micromamba env create -f environment.yml
+```
+
+Alternatively, if you need to manually specify packages, you can run (note that this is not recommended unless you have issues with the environment.yml file):
 ```
 micromamba create \
 	-n genome_sequencing \
@@ -27,7 +41,7 @@ micromamba create \
 	conda-forge::apptainer=1.4.1
 ```
 
-To activate the environment you then run `micromamba activate genome_sequencing`.
+To activate the environment, you then run `micromamba activate genome_sequencing`.
 
 ### Setting up environment
 
