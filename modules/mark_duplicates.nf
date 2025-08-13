@@ -16,11 +16,10 @@ process MARKDUP {
     script:
       """
       set -euo pipefail
-      echo "[${id}] coordinate-sort"
-      samtools sort -@ ${task.cpus} -l 1 -o ${id}_pos.bam ${fxbam}
 
       echo "[${id}] samtools markdup (remove dups, stats)"
-      samtools sort -@ ${task.cpus} -l 1 -o - ${fxbam} |
+      samtools view -@ ${task.cpus} -b -e 'exists([ms])' ${fxbam} |
+      samtools sort -@ ${task.cpus} -l 1 -o - |
       samtools markdup -@ ${task.cpus} -s -d 100 -f ${id}.markdup_metrics - -  |
       samtools view -@ ${task.cpus} -T ${params.referenceFasta} -O cram -o ${id}.cram -
       
