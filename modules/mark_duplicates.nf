@@ -16,12 +16,9 @@ process MARKDUP {
       """
       set -euo pipefail
       mkdir tmp
-      fifo="${id}.dedup.fifo.bam"
-      mkfifo "\$fifo"
-      trap 'rm -f "\$fifo"' EXIT
-      ${params.sambamba} markdup -t "${task.cpus}" --tmpdir=tmp ${fxbam} "\$fifo" &
-      samtools view -@ "${task.cpus}" -T "${params.referenceFasta}" -O cram -o "${id}.cram" "\$fifo"
-      wait
+      ${params.sambamba} markdup -t "${task.cpus}" --tmpdir=tmp ${fxbam} ${id}.dedup.bam
+      samtools view -@ ${task.cpus} -T "${params.referenceFasta}" -O cram -o "${id}.cram" ${id}.dedup.bam
+      rm -f ${id}.dedup.bam
       
       samtools index -@ ${task.cpus} ${id}.cram
 
