@@ -15,9 +15,8 @@ process DUPMETRICS {
     script:
       """
       java -Xmx24g -jar ${params.picardJar} CollectDuplicateMetrics \
-      INPUT=${id}.cram \
-      OUTPUT=${id}.markdup_metrics \
-      ASSUME_SORTED=true \
+      INPUT=${cram} \
+      METRICS_FILE=${id}.markdup_metrics
       VALIDATION_STRINGENCY=SILENT \
       REFERENCE_SEQUENCE=${params.referenceFasta}
       """
