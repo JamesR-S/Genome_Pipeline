@@ -20,6 +20,7 @@ include { CYTOMEGALOVIRUS } from './subworkflows/cytomegalovirus.nf'
 include { BATCH_RELATEDNESS } from './subworkflows/batch_relatedness.nf'
 include {CRAM2BAM} from './modules/cram_to_bam.nf'
 include {SPRING2FQ} from './modules/spring_to_fastq.nf'
+include {DUPMETRICS} from './modules/duplicates_metrics.nf'
 // Helper function: parse one line of "key=value" pairs
 def parseLineToTuple(String line) {
     def pairs = line.split(/;/)
@@ -129,6 +130,8 @@ workflow {
       
       CRAM2BAM (ch_final_cram)
       CRAM2BAM.out.set { ch_final_bam }
+
+      DUPMETRICS (ch_final_bam)
 
       CNV_CALLING (ch_final_bam, ch_ref_fasta,ch_ref_fai)
 

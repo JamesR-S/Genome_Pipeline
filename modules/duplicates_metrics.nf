@@ -7,7 +7,7 @@ process DUPMETRICS {
     tag "${id}"
 
     input:
-      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(cram), file(crai)
+      tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
 
     output:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file("${id}.markdup_metrics"), emit: metrics
@@ -15,7 +15,7 @@ process DUPMETRICS {
     script:
       """
       java -Xmx24g -jar ${params.picardJar} CollectDuplicateMetrics \
-      INPUT=${cram} \
+      INPUT=${bam} \
       METRICS_FILE=${id}.markdup_metrics
       VALIDATION_STRINGENCY=SILENT \
       REFERENCE_SEQUENCE=${params.referenceFasta}

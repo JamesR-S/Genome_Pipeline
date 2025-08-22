@@ -3,7 +3,6 @@ include { KEVLAR_COUNT } from '../modules/kevlar_count.nf'
 include { MERGE_BAMS } from '../modules/merge_sam.nf'
 include { FIXMATE } from '../modules/fix_mate.nf'
 include { MARKDUP } from '../modules/mark_duplicates.nf'
-include { DUPMETRICS } from '../modules/duplicates_metrics.nf'
 workflow FASTQ_TO_BAM {
     take:
     ch_parsed
@@ -39,8 +38,6 @@ workflow FASTQ_TO_BAM {
 
     MARKDUP.out.cram
         .set { ch_final_cram }
-
-    DUPMETRICS (ch_final_cram)
 
     emit:
     ch_final_cram
