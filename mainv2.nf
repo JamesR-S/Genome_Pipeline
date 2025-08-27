@@ -183,3 +183,33 @@ workflow {
       DEEP_TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
       }
 }
+
+
+workflow.onComplete { wf ->
+    if (params.send_mail) {
+        def email = params.email ?: "${System.getenv('USER') ?: 'unknown'}@exeter.ac.uk"
+        def msg = """\
+Workflow COMPLETED
+Project : ${workflow.projectDir}
+Run name: ${workflow.runName}
+Time    : ${new Date()}
+""".stripIndent()
+
+        Mailer.send(email, "Nextflow workflow COMPLETED: ${workflow.runName}", msg)
+    }
+}
+
+workflow.onError { wf, cause ->
+    if (params.send_mail) {
+        def email = params.email ?: "${System.getenv('USER') ?: 'unknown'}@exeter.ac.uk"
+        def msg = """\
+Workflow FAILED
+Project : ${workflow.projectDir}
+Run name: ${workflow.runName}
+Time    : ${new Date()}
+Error   : ${cause?.message ?: 'No message'}
+""".stripIndent()
+
+        Mailer.send(email, "Nextflow workflow FAILED: ${workflow.runName}", msg)
+    }
+}

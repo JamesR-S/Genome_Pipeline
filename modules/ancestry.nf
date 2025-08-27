@@ -2,8 +2,9 @@ process ANCESTRY {
     tag "${id}"
     cpus 16
     container 'jamesrusssilsby/gnomadtools:latest'
-    containerOptions{"-B ${params.resourcesDir}/gnomad_pca -B ${HOME}:${HOME}"}
+    containerOptions "-B ${params.resourcesDir}/gnomad_pca -B ${HOME}:${HOME}"
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(gvcf), file(csi)
 
@@ -13,12 +14,15 @@ process ANCESTRY {
 
     script:
     """
-    mkdir \$PWD/temp
-    mkdir \$PWD/ivy_cache
+    mkdir -p \\$PWD/temp
+    mkdir -p \\$PWD/ivy_cache
+    export TMPDIR=\\$PWD/temp
+
     python3 <<EOF
-import onnx
-import hail as hl
 import os
+import hail as hl
+import onnx
+
 from hail.vds.combiner import transform_gvcf
 from gnomad.sample_qc.ancestry import (
     apply_onnx_classification_model,
@@ -26,53 +30,80 @@ from gnomad.sample_qc.ancestry import (
 )
 from gnomad.utils.filtering import filter_to_adj
 
-from gnomad_qc.v2.resources.basics import get_gnomad_meta
-from gnomad_qc.v4.resources.basics import get_checkpoint_path
+# (Imports below were unused; keep if you plan to use later)
+# from gnomad_qc.v2.resources.basics import get_gnomad_meta
+# from gnomad_qc.v4.resources.basics import get_checkpoint_path
 
 read_if_exists = True
 v3_num_pcs = 16
 v3_min_prob = 0.75
 
+work = os.getcwd()
+tmp_dir = f"{work}/temp"
+ivy_dir = f"{work}/ivy_cache"
+
+os.makedirs(tmp_dir, exist_ok=True)
+os.makedirs(ivy_dir, exist_ok=True)
+os.environ["TMPDIR"] = tmp_dir
+
 hl.init(
-    tmp_dir=f"{os.getcwd()}/temp",
+    tmp_dir=tmp_dir,
     spark_conf={
-        "spark.driver.extraJavaOptions": f"-Djava.io.tmpdir={os.getcwd()}/temp",
-        "spark.executor.extraJavaOptions": f"-Djava.io.tmpdir={os.getcwd()}/temp",
-        "spark.driver.extraJavaOptions": f"-cache={os.getcwd()}/ivy_cache",
-        "spark.executor.extraJavaOptions": f"-cache={os.getcwd()}/ivy_cache",
-        "spark.local.dir": f"{os.getcwd()}/temp",
-        "spark.hadoop.ivy.cache.dir": f"{os.getcwd()}/ivy_cache"
-    }
+        # Memory (tune to your container limits)
+        "spark.driver.memory": "8g",
+        "spark.executor.memory": "8g",
+
+        # Keep Spark temp/local on our mounted tmp path
+        "spark.local.dir": tmp_dir,
+
+        # Correct Ivy cache location (for jar resolution)
+        "spark.jars.ivy": ivy_dir,
+
+        # Safer defaults for single-node runs
+        "spark.driver.maxResultSize": "0",
+        "spark.sql.shuffle.partitions": "64",
+        "spark.ui.enabled": "false",
+        "spark.eventLog.enabled": "false",
+    },
 )
+
 hl.default_reference('GRCh38')
 
 gnomad_v3_loadings = (
     "${params.resourcesDir}/gnomad_pca/gnomad.v3.1.pca_loadings.ht"
 )
 
-# v3.1 ONNX RF model.
+# v3.1 ONNX RF model (read via local FS, not Hadoop)
 gnomad_v3_onnx_rf = (
     "${params.resourcesDir}/gnomad_pca/gnomad.v3.1.RF_fit.onnx"
 )
-
-with hl.hadoop_open(gnomad_v3_onnx_rf, "rb") as f:
+with open(gnomad_v3_onnx_rf, "rb") as f:
     v3_onx_fit = onnx.load(f)
 
-mt_output_path        = f"${id}_gnomad_v3.1_ancestry_rf.mt"
-scores_output_path    = f"${id}_gnomad_v3.1_ancestry_rf.scores.ht"
-gnomad_assignment_path = f"${id}_gnomad_v3.1_ancestry_rf.assignment.ht"
+# Absolute output paths
+mt_output_path          = os.path.join(work, "${id}_gnomad_v3.1_ancestry_rf.mt")
+scores_output_path      = os.path.join(work, "${id}_gnomad_v3.1_ancestry_rf.scores.ht")
+gnomad_assignment_path  = os.path.join(work, "${id}_gnomad_v3.1_ancestry_rf.assignment.ht")
 
 v3_loading_ht = hl.read_table(gnomad_v3_loadings)
 
-mt = hl.import_vcf("${gvcf}", reference_genome='GRCh38', array_elements_required=False, force_bgz=True)
+mt = hl.import_vcf(
+    "${gvcf}",
+    reference_genome='GRCh38',
+    array_elements_required=False,
+    force_bgz=True
+)
+
 sample_vds = transform_gvcf(mt, reference_entry_fields_to_keep=["LA", "LGT", "GQ", "DP", "LAD"])
 sample_vds = hl.vds.split_multi(sample_vds, filter_changed_loci=True)
 sample_vds = hl.vds.filter_variants(sample_vds, v3_loading_ht)
 mt = hl.vds.to_dense_mt(sample_vds)
-# mt = filter_to_adj(mt)
+# mt = filter_to_adj(mt)  # Enable if you want adj filtering
 
 mt = mt.checkpoint(
-    mt_output_path, overwrite=not read_if_exists, _read_if_exists=read_if_exists
+    mt_output_path,
+    overwrite=not read_if_exists,
+    _read_if_exists=read_if_exists
 )
 
 v3_pcs_ht = hl.experimental.pc_project(
@@ -94,6 +125,7 @@ ht, model = assign_population_pcs(
     min_prob=v3_min_prob,
     apply_model_func=apply_onnx_classification_model,
 )
+
 ht = ht.checkpoint(
     gnomad_assignment_path,
     overwrite=not read_if_exists,
@@ -101,17 +133,16 @@ ht = ht.checkpoint(
 )
 
 v3_pcs_ht.export(
-    f"${id}.pca_scores.tsv",   
-    header=True,                      
-    delimiter="\t",                   
+    "${id}.pca_scores.tsv",
+    header=True,
+    delimiter="\\t",
 )
 
 ht.export(
-    f"${id}.ancestry_assignment.tsv",
+    "${id}.ancestry_assignment.tsv",
     header=True,
-    delimiter="\t",
+    delimiter="\\t",
 )
-
 EOF
     """
 }

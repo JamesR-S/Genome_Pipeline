@@ -1,6 +1,6 @@
 process DUPMETRICS {
     cpus 2
-    memory '24 GB'
+    memory '32 GB'
     publishDir "${params.batchDir}/r04_assembly", mode: 'copy'
     container 'docker://amazoncorretto:21.0.7'
     containerOptions "-B ${params.resourcesDir} -B ${params.picardJar}" 
@@ -14,10 +14,12 @@ process DUPMETRICS {
 
     script:
       """
-      java -Xmx24g -jar ${params.picardJar} CollectDuplicateMetrics \
+      mkdir tmp_dir
+      export TMPDIR=${PWD}/tmp_dir
+      export _JAVA_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
+      java -Xmx30g -jar ${params.picardJar} CollectDuplicateMetrics \
       INPUT=${bam} \
-      METRICS_FILE=${id}.markdup_metrics
-      VALIDATION_STRINGENCY=SILENT \
-      REFERENCE_SEQUENCE=${params.referenceFasta}
+      METRICS_FILE=${id}.markdup_metrics \
+      VALIDATION_STRINGENCY=SILENT 
       """
 }
