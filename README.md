@@ -43,7 +43,7 @@ micromamba create \
 
 To activate the environment, you then run:
 ```
-micromamba activate genome_sequencing`
+micromamba activate genome_sequencing
 ```
 
 ### Setting up environment
