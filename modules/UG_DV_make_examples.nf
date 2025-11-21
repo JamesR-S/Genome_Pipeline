@@ -1,15 +1,7 @@
 process DEEP_VARIANT {
     tag "${id}"
     cpus 16
-
-    errorStrategy 'retry'
-    maxRetries 3
-
-    time { 
-      def t = 36.h * (1 << (task.attempt - 1))
-      t > 108.h ? 108.h : t
-    }
-
+    time '12h'
     container 'docker://google/deepvariant:1.9.0'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir (

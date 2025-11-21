@@ -13,7 +13,7 @@ process HOMOZYGOSITY {
       tabix -p vcf ${vcf}
       ids=( ${id.join(" ")} )
       for i in \${ids[@]}; do
-           java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} VcfToHomozygosity7 ${vcf} \$i > \${i}_homozygosity.csv
+           java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} VcfToHomozygosity8 ${vcf} \$i > \${i}_homozygosity.csv
       done    
       """
 }
@@ -33,7 +33,7 @@ process SHARED_HAPLOTYPES {
       ids=( ${id.join(" ")} )
       for (( i=0;            i < \${#ids[@]}; i++ )); do       
         for (( j=i+1;      j < \${#ids[@]}; j++ )); do  
-           java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} VcfToHomozygosity7 ${vcf} -p \${ids[i]} \${ids[j]} > \${ids[i]}-\${ids[j]}_homozygosity.csv
+           java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp "${params.javaDir}:${params.javaDir}/jars/*" VcfToHomozygosity8 ${vcf} -p \${ids[i]} \${ids[j]} > \${ids[i]}-\${ids[j]}_homozygosity.csv
       done
       done    
       """
@@ -81,6 +81,6 @@ process BATCH_HOMOZYGOSITY {
       for i in \${vcfs[@]}; do
            tabix -p vcf \${i}
       done
-      java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar} VcfToHomozygosity7 ${vcf.join(" ")} -com -dp 80 > homozygosity.csv
+      java -Xmx9g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp "${params.javaDir}:${params.javaDir}/jars/*" VcfToHomozygosity8 ${vcf.join(" ")} -com -dp 80 > homozygosity.csv
       """
 }

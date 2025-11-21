@@ -13,11 +13,11 @@ process SPRING2FQ {
     output:
       tuple val(id), val(platform), val(sex), val(family), val(trio),
             val(flowcell), val(laneCount), val(famSampleCount),
-            file("*_1.fq"), file("*_2.fq")
+            file("*_1.fq.gz"), file("*_2.fq.gz")
 
     script:
       """
-      spring -d -i ${spring} -o \$(basename ${spring} .spring)_1.fq \$(basename ${spring} .spring)_2.fq
+      spring -d -i ${spring} -g -o \$(basename ${spring} .spring)_1.fq.gz \$(basename ${spring} .spring)_2.fq.gz
       """
       
 }

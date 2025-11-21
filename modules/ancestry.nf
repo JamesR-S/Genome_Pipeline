@@ -2,7 +2,7 @@ process ANCESTRY {
     tag "${id}"
     cpus 16
     container 'jamesrusssilsby/gnomadtools:latest'
-    containerOptions "-B ${params.resourcesDir}/gnomad_pca -B ${HOME}:${HOME}"
+    containerOptions "-B ${params.resourcesDir}/gnomad_pca"
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
 
     input:
@@ -14,9 +14,9 @@ process ANCESTRY {
 
     script:
     """
-    mkdir -p \\$PWD/temp
-    mkdir -p \\$PWD/ivy_cache
-    export TMPDIR=\\$PWD/temp
+    mkdir -p \$PWD/temp
+    mkdir -p \$PWD/ivy_cache
+    export TMPDIR=\$PWD/temp
 
     python3 <<EOF
 import os

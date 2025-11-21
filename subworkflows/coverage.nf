@@ -27,6 +27,14 @@ workflow COVERAGE {
     .set { ch_collapsed } 
     
     COVERAGE_BINNER(ch_final_bam)
+        .collect(flat: false)
+        .map { rows ->
+        rows.sort { it[0] }              
+        tuple( rows.collect{ it[0] },   
+               rows.collect{ it[1] },   
+               rows.collect{ it[2] } )  
+    }
+    .set { ch_cb_collapsed }
 
     INSERT_SIZES(ch_final_bam)
 
@@ -40,5 +48,5 @@ workflow COVERAGE {
 
     COVERAGE_REPORT(ch_index_coverage)
 
-    XY_COVERAGE(ch_coverage)
+    XY_COVERAGE(ch_cb_collapsed)
 }

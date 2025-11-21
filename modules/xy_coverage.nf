@@ -3,9 +3,9 @@ process XY_COVERAGE {
     cpus 1
     publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
     container 'docker://amazoncorretto:21.0.7'
-    containerOptions "-B ${params.javaDir} -B ${params.gatkJar}"    
+    containerOptions "-B ${params.javaDir} -B ${params.gatkJar} -B ${params.xy_bitmap}"    
     input:
-      tuple val(ids), val(sex), file(coverage)
+      tuple val(ids), val(sex), file(coverageBinner)
     output:
       tuple val(ids), val(sex), file("XY_coverage")
     script:
@@ -21,10 +21,11 @@ process XY_COVERAGE {
                      }
                      .join(' ') }"
 
-      java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir}:${params.javaDir}/jars/htsjdk-4.2.0.jar XYCoverageCHRPrefix \\
-        ${coverage} \\
+      java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir}:${params.javaDir}/jars/htsjdk-4.2.0.jar XYCoverageBinned \\
+       -bitmap ${params.xy_bitmap} \\
         -v genome \\
         \$id_flags \\
+        *.coverageBinner \\
         > XY_coverage
       """
 }

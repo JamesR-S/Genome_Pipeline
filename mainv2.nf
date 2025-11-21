@@ -98,7 +98,7 @@ workflow {
 
       CONTROL_PARSER (ch_control)
 
-      if (spring_dir.isDirectory()) {
+      if (spring_dir.isDirectory() && !params.forcefq) {
             CONTROL_PARSER.out.reads
             .splitText()              
             .filter { it }            
@@ -196,6 +196,9 @@ Time    : ${new Date()}
 """.stripIndent()
 
         Mailer.send(email, "Nextflow workflow COMPLETED: ${workflow.runName}", msg)
+
+        ["bash", "-c", "find ${params.batchDir}/r04* -type d -exec chmod 2775 {} +"].execute().waitFor()
+        ["bash", "-c", "find ${params.batchDir}/r04* -type f -exec chmod 664 {} +"].execute().waitFor()
     }
 }
 

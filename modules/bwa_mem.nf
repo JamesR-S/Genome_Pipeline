@@ -16,14 +16,21 @@ process BWA_MEM {
             file("${id}_${flowcell}_ns.bam")
 
     script:
+    def mode = task.attempt
       """
-      set -euo pipefail
+      if [[ ${mode} -eq 1 ]]; then
       echo "[${id}|${flowcell}] bwa-mem2 → name-sorted BAM"
-      ${params.bwa} mem -t ${task.cpus} -M \
+      ${params.bwaMem2} mem -t 12 -M \
         -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
         ${params.referenceFasta} ${fastq1} ${fastq2} \
-      | samtools view   -u -@ ${task.cpus} -                \\
-      | samtools sort   -n -@ ${task.cpus} -l 1 -o ${id}_${flowcell}_ns.bam
+      | samtools sort -n -@ 4 -l 1 -O BAM -o ${id}_${flowcell}_ns.bam -
+      else
+      echo "Fallback to bwa → name-sorted BAM"
+      ${params.bwaMem1} mem -t 12 -M \
+        -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
+        ${params.resourcesDir}/bwa-mem1/\$(basename ${params.referenceFasta}) ${fastq1} ${fastq2} \
+      | samtools sort -n -@ 4 -l 1 -O BAM -o ${id}_${flowcell}_ns.bam -
+      fi
       """
       
 }

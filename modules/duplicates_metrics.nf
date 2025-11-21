@@ -15,8 +15,8 @@ process DUPMETRICS {
     script:
       """
       mkdir tmp_dir
-      export TMPDIR=${PWD}/tmp_dir
-      export _JAVA_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
+      export TMPDIR=\${PWD}/tmp_dir
+      export _JAVA_OPTIONS="-Djava.io.tmpdir=\$TMPDIR"
       java -Xmx30g -jar ${params.picardJar} CollectDuplicateMetrics \
       INPUT=${bam} \
       METRICS_FILE=${id}.markdup_metrics \

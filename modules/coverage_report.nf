@@ -13,7 +13,7 @@ process COVERAGE_REPORT {
       """
       java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir} CoverageReport \\
         ${coverage} \\
-        ${params.base}/resources/grch38-v2-pipeline/variantcall.bed \\
+        ${params.easyRegions} \\
         > coverage_report
       """
 }
