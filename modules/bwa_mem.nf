@@ -18,6 +18,9 @@ process BWA_MEM {
     script:
     def mode = task.attempt
       """
+      mkdir -p \$PWD/temp
+      export TMPDIR=\$PWD/temp
+      
       if [[ ${mode} -eq 1 ]]; then
       echo "[${id}|${flowcell}] bwa-mem2 → name-sorted BAM"
       ${params.bwaMem2} mem -t 12 -M \

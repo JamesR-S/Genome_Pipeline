@@ -9,7 +9,7 @@ process ALIGN_CYTOMEGALOVIRUS {
       tuple val(id), val(sex), val(family), val(famSampleCount),file("${id}_cytomegalovirus_grepped2.sam")
     script:
       """
-      ${params.bwa} mem -t 16 -M  ${params.cytomegaloFasta} ${fastq} > ${id}_cytomegalovirus.sam
+      ${params.bwaMem2} mem -t 16 -M  ${params.cytomegaloFasta} ${fastq} > ${id}_cytomegalovirus.sam
 
       grep '^@\\|NC_006273\\.2' ${id}_cytomegalovirus.sam > ${id}_cytomegalovirus_grepped2.sam
       """

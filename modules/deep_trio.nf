@@ -16,6 +16,8 @@ process DEEP_TRIO {
       tuple val(id), val(sex), val(trio_ids), file("*_proband.vcf.gz"),file("*_father.vcf.gz"),file("*_mother.vcf.gz"), file("*_proband.vcf.gz.tbi"),file("*_father.vcf.gz.tbi"),file("*_mother.vcf.gz.tbi")
     script:
       """
+      mkdir -p \$PWD/temp
+      export TMPDIR=\$PWD/temp
       /opt/deepvariant/bin/deeptrio/run_deeptrio \
         --model_type=WGS \
         --ref=${Fasta[0]} \

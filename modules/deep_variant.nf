@@ -32,6 +32,10 @@ process DEEP_VARIANT {
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}.vcf.gz"), file("${id}.vcf.gz.csi"), emit: vcf
     script:
       """
+
+      mkdir -p \$PWD/temp
+      export TMPDIR=\$PWD/temp
+
       /opt/deepvariant/bin/run_deepvariant \
         --model_type=WGS \
         --ref=${Fasta[0]} \

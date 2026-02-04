@@ -11,6 +11,8 @@ process GLNEXUS {
 
     script:
     """
+    mkdir -p \$PWD/temp
+    export TMPDIR=\$PWD/temp
     glnexus_cli --config DeepVariant ${gvcfs.join(" ")} > ${family}.bcf
 
     bcftools view ${family}.bcf | bgzip -@ 4 -c > ${family}.vcf.gz
