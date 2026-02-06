@@ -1,5 +1,7 @@
 include { DENOVOCNN } from '../modules/denovocnn.nf'
 include { DENOVO_LARGE_INSERTS } from '../modules/denovo_large_inserts.nf'
+include { buildStatusById; parseLineToMeta; parseLineToTuple; parseLineToTupleSpring } from '../lib/helpers.nf'
+
 workflow TRIO_DE_NOVO {
     take:
     ch_final_bam
@@ -8,6 +10,7 @@ workflow TRIO_DE_NOVO {
     ch_ref_fai
     ch_gnomad_common
     ch_gnomad_common_idx
+    statusById
     
 
     main:
@@ -71,9 +74,22 @@ workflow TRIO_DE_NOVO {
                     }  
             .set { ch_trios_bam_vcf_concat }
     
+    ch_trios_bam_vcf_concat
+    .filter { ids, trio, bam, bai, vcf, csi ->
+        def rep = (ids instanceof List ? ids[0] : ids)
+        statusById[rep].denovocnn_needed
+    }
+    .set { ch_trios_bam_vcf_concat_for_cnn }   
 
-    DENOVOCNN(ch_trios_bam_vcf_concat, ch_ref_fasta, ch_ref_fai, ch_gnomad_common, ch_gnomad_common_idx)
+    DENOVOCNN(ch_trios_bam_vcf_concat_for_cnn, ch_ref_fasta, ch_ref_fai, ch_gnomad_common, ch_gnomad_common_idx)
 
-    DENOVO_LARGE_INSERTS (ch_trios_bam)
+    ch_trios_bam
+    .filter { ids, trio, bam, bai ->
+        def rep = (ids instanceof List ? ids[0] : ids)
+        statusById[rep].denovoLI_needed
+    }
+    .set { ch_trios_bam_for_large_inserts }   
+
+    DENOVO_LARGE_INSERTS (ch_trios_bam_for_large_inserts)
 
     }

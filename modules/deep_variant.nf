@@ -16,6 +16,7 @@ process DEEP_VARIANT {
     path: "${params.batchDir}",
     mode: 'copy',
     overwrite: true,
+    failOnError: true,
     saveAs: { fn ->                        
         fn.endsWith('.g.vcf.gz') ? "r04_gvcfs/${fn}" :
         fn.endsWith('.g.vcf.gz.csi') ? "r04_gvcfs/${fn}" :

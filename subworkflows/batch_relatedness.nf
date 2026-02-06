@@ -18,8 +18,11 @@ workflow BATCH_RELATEDNESS {
                rows.collect{ it[5] })  
     }
     .set { ch_vcf_collapsed } 
-    
-    RELATEDNESS(ch_vcf_collapsed)
 
-    BATCH_HOMOZYGOSITY(ch_vcf_collapsed)
+    if( !file("${params.batchDir}/r04_metrics/relatedness2.csv").exists() ) {
+        RELATEDNESS(ch_vcf_collapsed)
+    }
+    if( !file("${params.batchDir}/r04_metrics/homozygosity.csv").exists() ) {
+        BATCH_HOMOZYGOSITY(ch_vcf_collapsed)
+    }
 }

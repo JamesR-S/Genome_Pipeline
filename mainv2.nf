@@ -8,8 +8,6 @@ include { MOBILE_ELEMENTS } from './subworkflows/xtea_ME.nf'
 include { TRIO_DE_NOVO } from './subworkflows/trio_de_novo.nf'
 include { DEEP_TRIO_DE_NOVO } from './subworkflows/deep_trio_de_novo.nf'
 include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
-include { FASTQ_TO_BAM_PARABRICKS } from './subworkflows/fastqtobam_parabricks.nf'
-include { SNV_INDEL_CALLING_GPU } from './subworkflows/snv_indel_calling_gpu.nf'
 include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
@@ -21,66 +19,7 @@ include { BATCH_RELATEDNESS } from './subworkflows/batch_relatedness.nf'
 include {CRAM2BAM} from './modules/cram_to_bam.nf'
 include {SPRING2FQ} from './modules/spring_to_fastq.nf'
 include {DUPMETRICS} from './modules/duplicates_metrics.nf'
-// Helper function: parse one line of "key=value" pairs
-def parseLineToTuple(String line) {
-    def pairs = line.split(/;/)
-    def map   = [:]
-    pairs.each { kv ->
-       def (k,v) = kv.split(/=/,2)
-       map[k.trim()] = v.trim()
-    }
-    // Build the meta map
-    def id = map.sample   // or 'sample'
-    def platform = map.platform
-    def sex = map.sex
-    def family = map.family
-    def trio = map.trio
-    def flowcell = map.flowcell
-    def laneCount = map.sampleLaneCount.toInteger()
-    def famSampleCount = map.familySampleCount.toInteger()
-
-    // Build the list of file() objects
-    def fq1 = file(params.batchDir+"/fastq/"+map.fastq1)
-    def fq2 = file(params.batchDir+"/fastq/"+map.fastq2)
-    
-    return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, fq1, fq2 ]
-}
-
-def parseLineToTupleSpring(String line) {
-    def pairs = line.split(/;/)
-    def map   = [:]
-    pairs.each { kv ->
-       def (k,v) = kv.split(/=/,2)
-       map[k.trim()] = v.trim()
-    }
-    // Build the meta map
-    def id = map.sample   // or 'sample'
-    def platform = map.platform
-    def sex = map.sex
-    def family = map.family
-    def trio = map.trio
-    def flowcell = map.flowcell
-    def laneCount = map.sampleLaneCount.toInteger()
-    def famSampleCount = map.familySampleCount.toInteger()
-    def fq1_name = new File(map.fastq1).name
-    def fq2_name = new File(map.fastq2).name
-
-    def (fq1_base, fq2_base) = [fq1_name, fq2_name].collect {
-        it.replaceFirst(/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$/, '')
-    }
-
-    // find the longest common prefix
-    int i = 0
-    while (i < fq1_name.size() && i < fq2_name.size() && fq1_name[i] == fq2_name[i]) {
-        i++
-    }
-    def common = fq1_name[0..<i].replaceFirst(/[_\.\-(_R)]+$/, '')  // trim trailing _.- if wanted
-
-    def springName = "${common}.spring"
-    def spring     = file("${params.batchDir}/spring/${springName}")
-    
-        return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
-    }
+include { buildStatusById; parseLineToMeta; parseLineToTuple; parseLineToTupleSpring } from './lib/helpers.nf'
 
 params.batchDir = file(params.batchDir ?: '.')
 params.control = file(params.control ?: params.batchDir+"/control")
@@ -98,14 +37,43 @@ workflow {
 
       CONTROL_PARSER (ch_control)
 
-      if (spring_dir.isDirectory() && !params.forcefq) {
-            CONTROL_PARSER.out.reads
-            .splitText()              
-            .filter { it }            
-            .map   { parseLineToTupleSpring(it) }
-            .set  { ch_spring }
+      def controlLines = CONTROL_PARSER.out.reads
+        .splitText()
+        .filter { it }
+        .toList()
 
-            SPRING2FQ (ch_spring)
+      def metaById = [:]
+      controlLines.each { line ->
+        def m = parseLineToMeta(line)
+        if( !metaById.containsKey(m.id as String) )
+            metaById[m.id as String] = m
+      }
+
+      def rowsForStatus = controlLines.collect { line ->
+        def m = parseLineToMeta(line)
+        [ m.id, null, null, m.family, m.trio ]
+      }
+      def statusById = buildStatusById(rowsForStatus)
+
+
+      def ch_cram_existing = Channel
+        .from(metaById.keySet().toList())
+        .filter { id -> !statusById[id].cram_needed }                 // has cram+crai
+        .map { id ->
+            def meta = metaById[id]
+            tuple(meta.id,meta.sex,meta.family,meta.trio,meta.famSampleCount, statusById[id].cram, statusById[id].crai)
+        }
+
+      def needFQIds = metaById.keySet().findAll { id -> statusById[id].cram_needed || statusById[id].qc_needed} as Set
+
+      if (spring_dir.isDirectory() && !params.forcefq) {
+        def springRows = controlLines
+            .collect { parseLineToTupleSpring(it) }   // [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
+            .findAll { row -> needFQIds.contains(row[0] as String) }
+
+            Channel.from(springRows).set { ch_spring_need }
+
+            SPRING2FQ (ch_spring_need)
             SPRING2FQ.out.set { ch_fq }
 
       } else {
@@ -113,75 +81,143 @@ workflow {
             .splitText()              
             .filter { it }            
             .map   { parseLineToTuple(it) }
+            .filter { row -> needFQIds.contains(row[0]) }
             .set  { ch_fq }
       }
 
-      QC(ch_fq)
+      def ch_fq_existing = Channel
+        .from(metaById.keySet().toList())
+        .filter { id -> !statusById[id].qc_needed }                 
+        .map { id ->
+            def meta = metaById[id]
+            tuple(meta.id,meta.sex,meta.family,meta.famSampleCount, statusById[id].fq_qc)
+        }
+
+      ch_fq
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].qc_needed }
+        .set { ch_qc_fq }
+
+
+      QC(ch_qc_fq)
       QC.out.set { ch_check_fastq }
       
-      if (params.gpu) {
-            FASTQ_TO_BAM_PARABRICKS (ch_fq)
-            FASTQ_TO_BAM_PARABRICKS.out.set { ch_final_cram }
-            }
-      else {
-            FASTQ_TO_BAM (ch_fq)
-            FASTQ_TO_BAM.out.set { ch_final_cram }
-      }
+      def ch_final_fq_qc = ch_fq_existing.mix(ch_check_fastq)
+
+      ch_fq
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].cram_needed }
+        .set { ch_cram_fq }
+
+      FASTQ_TO_BAM (ch_cram_fq)
+      FASTQ_TO_BAM.out.set { ch_cram_new }
       
-      CRAM2BAM (ch_final_cram)
+      def ch_final_cram = ch_cram_existing.mix(ch_cram_new)
+
+      ch_final_cram
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].bam_needed }
+        .set { ch_cram_to_bam }  
+
+      CRAM2BAM (ch_cram_to_bam)
       CRAM2BAM.out.set { ch_final_bam }
-
-      DUPMETRICS (ch_final_bam)
-
-      CNV_CALLING (ch_final_bam, ch_ref_fasta,ch_ref_fai)
-
-      CYTOMEGALOVIRUS (ch_final_bam, ch_check_fastq)
-
-      MOBILE_ELEMENTS (ch_final_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
-
-      EXPANSION_HUNTER_DE_NOVO (ch_final_bam)
       
-      CONTAM_SMALL (ch_final_bam)
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].dup_metrics_needed }
+        .set { ch_dup_metrics }
 
-      COVERAGE (ch_final_bam,ch_control)
+      DUPMETRICS (ch_dup_metrics)
 
-      if (params.gpu) {
-            SNV_INDEL_CALLING_GPU(ch_final_bam, ch_ref_fasta, ch_ref_fai)
-            SNV_INDEL_CALLING_GPU.out.single_sample.filter { row -> row[3] < 2 }
-                  .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
-            .set { ch_singleton_vcf }
+      CNV_CALLING (ch_final_bam, ch_ref_fasta,ch_ref_fai,statusById)
 
-            SNV_INDEL_CALLING_GPU.out.family.mix(ch_singleton_vcf)
-            .set { ch_combined_vcf }
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].cymegv_needed }
+        .set { ch_cymegv_bam }
 
-            SNV_INDEL_CALLING_GPU.out.single_sample
-                  .set { ch_single_sample_vcf }
+      ch_final_fq_qc
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].cymegv_needed }
+        .set { ch_cymegv_fq_qc }    
+
+      CYTOMEGALOVIRUS (ch_cymegv_bam, ch_cymegv_fq_qc)
+
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].te_needed }
+        .set { ch_te_bam }        
+
+      MOBILE_ELEMENTS (ch_te_bam, ch_ref_fasta, ch_ref_fai, ch_ref_gff)
+
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].exphunter_needed }
+        .set { ch_exphunter_bam } 
+
+      EXPANSION_HUNTER_DE_NOVO (ch_exphunter_bam)
+
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].contam_needed }
+        .set { ch_contam_bam } 
+
+      CONTAM_SMALL (ch_contam_bam)
+
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].cov_needed }
+        .set { ch_cov_bam }       
+
+      COVERAGE (ch_cov_bam,ch_control)
+
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].snv_needed }
+        .set { ch_snv_bam }       
+
+      SNV_INDEL_CALLING(ch_snv_bam, ch_ref_fasta, ch_ref_fai,statusById,metaById)
+      SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
+        .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
+        .set { ch_singleton_vcf }
+
+      SNV_INDEL_CALLING.out.family.mix(ch_singleton_vcf)
+        .set { ch_combined_new_vcf }
+
+      def families = metaById.values()
+        .collect { it.family as String }
+        .unique()
+
+      def ch_vcf_existing = Channel
+        .from(families)
+        .filter { fam ->
+            def rep = fam.tokenize('-')[0]
+            !statusById[rep].fam_vcf_needed
+        }
+        .map { fam ->
+            def ids = fam.tokenize('-')
+            def rep = ids[0]
+            def sexList = ids.collect { sid -> metaById[sid]?.sex }
+
+            tuple(
+                ids,                             
+                sexList,                         
+                fam,
+                ids.size(),                   
+                statusById[rep].fam_vcf,
+                statusById[rep].fam_vcf_csi
+            )
       }
-      else {
-            SNV_INDEL_CALLING(ch_final_bam, ch_ref_fasta, ch_ref_fai)
-            SNV_INDEL_CALLING.out.single_sample.filter { row -> row[3] < 2 }
-                  .map { row -> tuple( [row[0]], row[1], row[2], row[3], row[4], row[5] )}
-            .set { ch_singleton_vcf }
+ 
+      def ch_combined_vcf = ch_vcf_existing.mix(ch_combined_new_vcf)
 
-            SNV_INDEL_CALLING.out.family.mix(ch_singleton_vcf)
-            .set { ch_combined_vcf }
-
-            SNV_INDEL_CALLING.out.single_sample
-                  .set { ch_single_sample_vcf }
-      }
+      SNV_INDEL_CALLING.out.single_sample
+        .set { ch_single_sample_vcf }
 
       BATCH_RELATEDNESS (ch_combined_vcf)      
 
       HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
 
-      ANNOTATION(ch_combined_vcf)
+      ch_combined_vcf
+      .filter { ids, sexList, fam, n, vcf, csi ->
+        def rep = (ids instanceof List ? ids[0] : ids)
+        statusById[rep].vep_needed
+      }
+      .set { ch_vep_vcf }
+ 
 
-      if (params.denovocnn) {
-      TRIO_DE_NOVO (ch_final_bam, ch_single_sample_vcf, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx)
-      }
-      else {
-      DEEP_TRIO_DE_NOVO (ch_final_bam, ch_ref_fasta, ch_ref_fai)
-      }
+      ANNOTATION(ch_vep_vcf)
+
+      TRIO_DE_NOVO (ch_final_bam, ch_single_sample_vcf, ch_ref_fasta, ch_ref_fai,ch_gnomad_common,ch_gnomad_common_idx,statusById)
 }
 
 

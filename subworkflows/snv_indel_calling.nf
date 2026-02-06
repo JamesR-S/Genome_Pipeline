@@ -6,13 +6,29 @@ workflow SNV_INDEL_CALLING {
     ch_final_bam
     ch_ref_fasta
     ch_ref_fai
+    statusById
+    metaById
 
     main:
 
     DEEP_VARIANT (ch_final_bam, ch_ref_fasta, ch_ref_fai)
 
     DEEP_VARIANT.out.vcf.set { ch_vcf }
-    DEEP_VARIANT.out.gvcf
+
+    DEEP_VARIANT.out.gvcf.set { ch_gvcf }
+
+    def ch_gvcf_existing = Channel
+        .from(metaById.keySet().toList())
+        .filter { id -> !statusById[id].snv_needed }                 // has cram+crai
+        .map { id ->
+            def meta = metaById[id]
+            tuple(meta.id,meta.sex,meta.family,meta.famSampleCount, statusById[id].gvcf, statusById[id].gvcf_csi)
+        }
+
+    def ch_final_gvcf = ch_gvcf_existing.mix(ch_gvcf)
+
+
+    ch_final_gvcf
         .filter { row -> row[3] >= 2 }
         .map {row ->
                 def (id, sex, family, famSampleCount, gvcf, gvcfcsi) = row
@@ -38,10 +54,21 @@ workflow SNV_INDEL_CALLING {
                 }
         .set  { ch_family_gvcf }
 
-    GLNEXUS (ch_family_gvcf)
+    ch_family_gvcf
+    .filter { ids, sex, family, n, gvcf, gvcfcsi ->
+        def rep = (ids instanceof List ? ids[0] : ids)
+        statusById[rep].cnv_needed
+    }
+    .set { ch_family_gvcf_needed }  
+
+    GLNEXUS (ch_family_gvcf_needed)
         .set { ch_family_vcf }
 
-    ANCESTRY(DEEP_VARIANT.out.gvcf)
+    ch_final_gvcf
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].ancestry_needed }
+        .set { ch_ancestry } 
+
+    ANCESTRY(ch_ancestry)
 
     emit:
     single_sample = ch_vcf

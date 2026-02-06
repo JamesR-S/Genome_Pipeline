@@ -40,13 +40,21 @@ workflow COVERAGE {
 
     CLIP_RATE(ch_final_bam)
 
-    DEPTH_OF_COVERAGE(ch_collapsed)
-        .set { ch_coverage }
+    if( !file("${params.batchDir}/r04_metrics/Coverage.indexed").exists() ) {
+        DEPTH_OF_COVERAGE(ch_collapsed)
+            .set { ch_coverage }
 
-    INDEX_COVERAGE(ch_coverage,ch_control)
-        .set { ch_index_coverage }
+        INDEX_COVERAGE(ch_coverage,ch_control)
+            .set { ch_index_coverage }
+    }else {
+        ch_index_coverage = Channel.fromPath("${params.batchDir}/r04_metrics/Coverage.indexed")
+    }
 
-    COVERAGE_REPORT(ch_index_coverage)
+    if( !file("${params.batchDir}/r04_metrics/coverage_report").exists() ) {    
+        COVERAGE_REPORT(ch_index_coverage)
+    }
 
-    XY_COVERAGE(ch_cb_collapsed)
+    if( !file("${params.batchDir}/r04_metrics/XY_coverage").exists() ) {
+        XY_COVERAGE(ch_cb_collapsed)
+    }
 }
