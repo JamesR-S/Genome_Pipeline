@@ -3,7 +3,7 @@ process RELATEDNESS {
     tag "batch_${id[0]}"
     module 'VCFtools/0.1.16-GCC-11.2.0'
     cpus 1
-    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
     output:

@@ -1,7 +1,7 @@
 process INDEX_COVERAGE {
     tag "batch_${id[0]}"
     cpus 1
-    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
+    publishDir("${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true)
     container 'docker://amazoncorretto:21.0.7'
     containerOptions "-B ${params.javaDir} -B ${params.base}"
     input:

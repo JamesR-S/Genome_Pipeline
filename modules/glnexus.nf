@@ -2,7 +2,7 @@ process GLNEXUS {
     container 'docker://cgrlab/glnexus:v1.4.1'
     tag "${family}"
     cpus 16
-    publishDir "${params.batchDir}/r04_vcfs", mode: 'copy'
+    publishDir "${params.batchDir}/r04_vcfs", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(gvcfs), file(gvcfcsis)
 

@@ -1,7 +1,7 @@
 process EXPANSION_HUNTER_DE_NOVO {
     tag "${id}"
     cpus 16
-    publishDir "${params.batchDir}/r04_expansionhunterdenovo", mode: 'copy'
+    publishDir "${params.batchDir}/r04_expansionhunterdenovo", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:

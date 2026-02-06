@@ -6,7 +6,9 @@ process XTEA {
     publishDir(
         path: { "${params.batchDir}/r04_transposable_elements" },
         pattern: "*.vcf*",
-        mode: 'copy')
+        mode: 'copy', 
+        overwrite: true, 
+        failOnError: true)
     
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(bam), file(bai)

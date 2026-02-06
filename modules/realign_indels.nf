@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process INDEL_REALIGN {
     tag "${id}"
-    publishDir "r04_assembly", mode: 'copy'
+    publishDir "r04_assembly", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(dedupBam), file(dedupBai)
     output:

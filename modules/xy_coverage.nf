@@ -1,7 +1,7 @@
 process XY_COVERAGE {
     tag "batch_${ids[0]}-${ids[-1]}"
     cpus 1
-    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
+    publishDir("${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true)
     container 'docker://amazoncorretto:21.0.7'
     containerOptions "-B ${params.javaDir} -B ${params.gatkJar} -B ${params.xy_bitmap}"    
     input:

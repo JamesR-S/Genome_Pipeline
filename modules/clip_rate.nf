@@ -1,7 +1,7 @@
 process CLIP_RATE {
     tag "${id}"
     cpus 2
-    publishDir("${params.batchDir}/r04_metrics", mode: 'copy')
+    publishDir("${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true)
     
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

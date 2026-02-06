@@ -1,7 +1,7 @@
 process VEP_PROCESSING {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "${params.batchDir}/r04_vep", mode: 'copy'
+    publishDir "${params.batchDir}/r04_vep", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf)
     output:

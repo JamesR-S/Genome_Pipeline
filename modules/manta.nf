@@ -6,7 +6,7 @@ process MANTA {
     container 'https://depot.galaxyproject.org/singularity/manta:1.6.0--h9ee0642_1'
     containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
     publishDir(path: { "${params.batchDir}/r04_manta" },
-        mode: 'copy')
+        mode: 'copy', overwrite: true, failOnError: true)
 
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(bam), file(bai)

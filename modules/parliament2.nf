@@ -5,7 +5,7 @@ process PARLIAMENT2 {
     container 'jamescraufurd/parliament2:latest'
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B \$PWD:/home/dnanexus/in -B \$PWD:/home/dnanexus/out")
     publishDir(path: { "${params.batchDir}/r04_parliament2" },
-        mode: 'copy')
+        mode: 'copy', overwrite: true, failOnError: true)
 
     input:
       tuple val(id), val(sex), val(trio), val(family), val(famSampleCount), file(bam), file(bai)
