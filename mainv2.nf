@@ -211,7 +211,7 @@ workflow {
 
       BATCH_RELATEDNESS (ch_combined_vcf)      
 
-      HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf)
+      HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf,statusById)
 
       ch_combined_vcf
       .filter { ids, sexList, fam, n, vcf, csi ->
@@ -229,7 +229,7 @@ workflow {
 
 workflow.onComplete { wf ->
     if (params.send_mail) {
-        def email = params.email ?: "${System.getenv('USER') ?: 'unknown'}@exeter.ac.uk"
+        def email = "${System.getenv('USER') ?: 'unknown'}@exeter.ac.uk"
         def msg = """\
 Workflow COMPLETED
 Project : ${workflow.projectDir}
@@ -239,22 +239,7 @@ Time    : ${new Date()}
 
         Mailer.send(email, "Nextflow workflow COMPLETED: ${workflow.runName}", msg)
 
-        ["bash", "-c", "find ${params.batchDir}/r04* -type d -exec chmod 2775 {} +"].execute().waitFor()
-        ["bash", "-c", "find ${params.batchDir}/r04* -type f -exec chmod 664 {} +"].execute().waitFor()
-    }
-}
-
-workflow.onError { wf, cause ->
-    if (params.send_mail) {
-        def email = params.email ?: "${System.getenv('USER') ?: 'unknown'}@exeter.ac.uk"
-        def msg = """\
-Workflow FAILED
-Project : ${workflow.projectDir}
-Run name: ${workflow.runName}
-Time    : ${new Date()}
-Error   : ${cause?.message ?: 'No message'}
-""".stripIndent()
-
-        Mailer.send(email, "Nextflow workflow FAILED: ${workflow.runName}", msg)
+     //   ["bash", "-c", "find ${params.batchDir}/r04* -type d -exec chmod 2775 {} +"].execute().waitFor()
+     //   ["bash", "-c", "find ${params.batchDir}/r04* -type f -exec chmod 664 {} +"].execute().waitFor()
     }
 }

@@ -19,10 +19,10 @@ workflow BATCH_RELATEDNESS {
     }
     .set { ch_vcf_collapsed } 
 
-    if( !file("${params.batchDir}/r04_metrics/relatedness2.csv").exists() ) {
+    if( !file("${params.batchDir}/r04_metrics/relatedness2.csv").exists() || params.rerun_all) {
         RELATEDNESS(ch_vcf_collapsed)
     }
-    if( !file("${params.batchDir}/r04_metrics/homozygosity.csv").exists() ) {
+    if( !file("${params.batchDir}/r04_metrics/homozygosity.csv").exists() || params.rerun_all) {
         BATCH_HOMOZYGOSITY(ch_vcf_collapsed)
     }
 }
