@@ -33,5 +33,8 @@ workflow CYTOMEGALOVIRUS {
     }
     .set { ch_sam_cfq_collapsed } 
 
+if( !file("${params.batchDir}/r04_cytomegalovirus/stats").exists() || params.rerun_all) {
     CYTOMEGALOVIRUS_COUNT(ch_sam_cfq_collapsed)
+}
+
 }

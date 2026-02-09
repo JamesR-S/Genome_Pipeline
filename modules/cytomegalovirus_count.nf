@@ -2,7 +2,7 @@
 process CYTOMEGALOVIRUS_COUNT {
     cpus 4
     tag "batch_${id[0]}"
-    publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy'
+    publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy', overwrite: true, failOnError: true
     container 'docker://amazoncorretto:21.0.7'
     containerOptions "-B ${params.javaDir} -B ${params.gatkJar}"
     input:

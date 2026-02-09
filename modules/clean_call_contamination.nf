@@ -3,7 +3,7 @@ process CONTAM {
     tag "${id}"
     module 'SAMtools/1.17-GCC-12.2.0'
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:
@@ -22,16 +22,16 @@ process CONTAM_SMALL {
     cpus 16
     module 'SAMtools/1.17-GCC-12.2.0'
     module 'BCFtools/1.17-GCC-12.2.0'
-    publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
+    publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
     output:
-      tuple val(id), file("${id}_cleanCall_small.csv")
+      tuple val(id), file("${id}_cleanCall.csv")
     script:
       """
       samtools view -@16 -q 20 -F 0x0704 -uh ${id}.bam chr2 | samtools calmd -@16 -AEur - ${params.referenceFasta} |  samtools mpileup -@ 16 -s -O -f ${params.referenceFasta} -d 255 -l ${params.resourcesDir}/ExAC.r0.1.sites.vep.AF5.chr2.giab.liftover_b38.bed - | bgzip -c > cleanCall_small.pileup.${id}.txt.gz
       tabix -f -s 1 -b 2 -e 2 cleanCall_small.pileup.${id}.txt.gz
       ${params.software}/cleancall/bin/cleanCall verify --vcf ${params.resourcesDir}/ExAC.r0.1.sites.vep.AF5.chr2.giab.liftover_b38.vcf --minAF 0.01 --minCallRate 0.95 --out cleanCall_small.verify.${id} --mpu cleanCall_small.pileup.${id}.txt.gz --smID ${id} --maxDepth 20
-      mv cleanCall_small.verify.${id}.selfSM ${id}_cleanCall_small.csv
+      mv cleanCall_small.verify.${id}.selfSM ${id}_cleanCall.csv
       """
 }

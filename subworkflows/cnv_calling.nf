@@ -1,11 +1,14 @@
 include { MANTA } from '../modules/manta.nf'
 include { SURVINDEL2 } from '../modules/survindel2.nf'
 include { PARLIAMENT2 } from '../modules/parliament2.nf'
+include { buildStatusById; parseLineToMeta; parseLineToTuple; parseLineToTupleSpring } from '../lib/helpers.nf'
+
 workflow CNV_CALLING {
     take:
     ch_final_bam
     ch_ref_fasta
     ch_ref_fai
+    statusById
 
     main:
 
@@ -36,12 +39,28 @@ workflow CNV_CALLING {
             }
     .set  { family_bams }
 
-    MANTA (family_bams, ch_ref_fasta,ch_ref_fai,manta_bed,manta_bed_idx)
+    family_bams
+    .filter { ids, sex, family, n, bam, bai ->
+        def rep = (ids instanceof List ? ids[0] : ids)
+        statusById[rep].cnv_needed
+    }
+    .set { ch_manta_bam }    
+
+    MANTA (ch_manta_bam, ch_ref_fasta,ch_ref_fai,manta_bed,manta_bed_idx)
         .set { ch_manta_vcf }
 
-    SURVINDEL2 (ch_final_bam, ch_ref_fasta,ch_ref_fai)
+    ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].survindel_needed }
+        .set { ch_survindel_bam }  
 
-    PARLIAMENT2 (ch_final_bam, ch_ref_fasta,ch_ref_fai)
+
+    SURVINDEL2 (ch_survindel_bam, ch_ref_fasta,ch_ref_fai)
+
+    ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].parliament_needed }
+        .set { ch_parliament_bam }  
+
+    PARLIAMENT2 (ch_parliament_bam, ch_ref_fasta,ch_ref_fai)
         .set { ch_parliament_vcf }
 
     }

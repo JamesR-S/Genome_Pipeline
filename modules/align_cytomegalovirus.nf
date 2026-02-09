@@ -2,7 +2,7 @@
 process ALIGN_CYTOMEGALOVIRUS {
     cpus 16
     tag "${id}"
-    publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy'
+    publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(fastq)
     output:

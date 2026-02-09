@@ -5,7 +5,7 @@ process SURVINDEL2 {
     container 'jamescraufurd/survindel2:latest'
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.survindel2model}")
     publishDir(path: { "${params.batchDir}/r04_survindel2" },
-        mode: 'copy')
+        mode: 'copy', overwrite: true, failOnError: true)
 
     input:
       tuple val(id), val(sex), val(trio), val(family), val(famSampleCount), file(bam), file(bai)

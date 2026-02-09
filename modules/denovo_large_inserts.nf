@@ -1,7 +1,7 @@
 process DENOVO_LARGE_INSERTS {
     tag { trio_ids.join('-') }
     cpus 4
-    publishDir "${params.batchDir}/r04_denovolargeinserts", mode: 'copy'
+    publishDir "${params.batchDir}/r04_denovolargeinserts", mode: 'copy', overwrite: true, failOnError: true
     container 'docker://amazoncorretto:21.0.7'
     containerOptions "-B ${params.javaDir} -B ${params.gatkJar}"    
     input:

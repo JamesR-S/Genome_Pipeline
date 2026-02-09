@@ -1,7 +1,7 @@
 process DUPMETRICS {
     cpus 2
     memory '32 GB'
-    publishDir "${params.batchDir}/r04_assembly", mode: 'copy'
+    publishDir "${params.batchDir}/r04_assembly", mode: 'copy', overwrite: true, failOnError: true
     container 'docker://amazoncorretto:21.0.7'
     containerOptions "-B ${params.resourcesDir} -B ${params.picardJar}" 
     tag "${id}"
