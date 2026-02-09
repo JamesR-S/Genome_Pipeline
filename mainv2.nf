@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+params.batchDir = params.batchDir ?: '.'
+params.control  = params.control  ?: "${params.batchDir}/control"
+
 include { CONTROL_PARSER } from './modules/parse_control.nf'
 include { CONTAM_SMALL } from './modules/clean_call_contamination.nf'
 include { EXPANSION_HUNTER_DE_NOVO } from './modules/expansionHunterDeNovo.nf'
@@ -18,28 +21,21 @@ include { BATCH_RELATEDNESS } from './subworkflows/batch_relatedness.nf'
 include {CRAM2BAM} from './modules/cram_to_bam.nf'
 include {SPRING2FQ} from './modules/spring_to_fastq.nf'
 include {DUPMETRICS} from './modules/duplicates_metrics.nf'
-include { buildStatusById; parseLineToMeta; parseLineToTuple; parseLineToTupleSpring } from './lib/helpers.nf'
-
-params.batchDir = file(params.batchDir ?: '.')
-params.control = file(params.control ?: params.batchDir+"/control")
+include { buildStatusById; parseLineToMeta; parseLineToTuple; parseLineToTupleSpring; makeParsedLines } from './lib/helpers.nf'
 
 workflow {
 
       spring_dir = file(params.batchDir + "/spring")
 
-      ch_control = file(params.control)
       ch_ref_fasta = file(params.referenceFasta)
       ch_ref_fai = file(params.referenceFasta + ".fai")
       ch_ref_gff = file( params.referenceGFF )
       ch_gnomad_common = file ( params.gnomadCommon )
       ch_gnomad_common_idx = file ( params.gnomadCommon + ".csi" )
 
-      CONTROL_PARSER (ch_control)
-
-      def controlLines = CONTROL_PARSER.out.reads
-        .splitText()
-        .filter { it }
-        .toList()
+      def ch_control = file(params.control)
+      def controlFile = new File(ch_control.toString())
+      def controlLines = makeParsedLines(controlFile)
 
       def metaById = [:]
       controlLines.each { line ->
@@ -53,6 +49,19 @@ workflow {
         [ m.id, null, null, m.family, m.trio ]
       }
       def statusById = buildStatusById(rowsForStatus)
+
+      // ---- DEBUG: print per-sample flags ----
+      println "\n=== STATUS FLAGS (per sample) ==="
+      metaById.keySet().sort().each { id ->
+          def s = statusById[id]
+          println sprintf(
+              "%-20s cram_needed=%-5s qc_needed=%-5s bam_needed=%-5s snv_needed=%-5s cov_needed=%-5s cnv_needed=%-5s",
+              id,
+              s.cram_needed, s.qc_needed, s.bam_needed,
+              s.snv_needed, s.cov_needed, s.cnv_needed
+          )
+      }
+      println "=== END STATUS FLAGS ===\n"
 
 
       def ch_cram_existing = Channel
@@ -76,12 +85,10 @@ workflow {
             SPRING2FQ.out.set { ch_fq }
 
       } else {
-            CONTROL_PARSER.out.reads
-            .splitText()              
-            .filter { it }            
-            .map   { parseLineToTuple(it) }
-            .filter { row -> needFQIds.contains(row[0]) }
-            .set  { ch_fq }
+            Channel.from(controlLines)
+            .map { parseLineToTuple(it) }
+            .filter { row -> needFQIds.contains(row[0] as String) }
+            .set { ch_fq }
       }
 
       def ch_fq_existing = Channel

@@ -3,6 +3,7 @@ process HOMOZYGOSITY {
     tag "${family}"
     cpus 4
     module 'BCFtools/1.17-GCC-12.2.0'
+    stageInMode 'copy'
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -22,6 +23,7 @@ process SHARED_HAPLOTYPES {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
     cpus 4
+    stageInMode 'copy'
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -43,6 +45,7 @@ process UPD {
     tag "${family}"
     module 'BCFtools/1.17-GCC-12.2.0'
     cpus 4
+    stageInMode 'copy'
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
@@ -70,6 +73,7 @@ process BATCH_HOMOZYGOSITY {
     tag "batch_${id[0]}"
     module 'BCFtools/1.17-GCC-12.2.0'
     cpus 4
+    stageInMode 'copy'
     publishDir "${params.batchDir}/r04_metrics", mode: 'copy'
     input:
       tuple val(id), val(sex), val(family), val(famSampleCount), file(vcf), file(csi)
