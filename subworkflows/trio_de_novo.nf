@@ -84,7 +84,7 @@ workflow TRIO_DE_NOVO {
     DENOVOCNN(ch_trios_bam_vcf_concat_for_cnn, ch_ref_fasta, ch_ref_fai, ch_gnomad_common, ch_gnomad_common_idx)
 
     ch_trios_bam
-    .filter { ids, trio, bam, bai ->
+    .filter { ids,sex ,trio, bam, bai ->
         def rep = (ids instanceof List ? ids[0] : ids)
         statusById[rep].denovoLI_needed
     }
