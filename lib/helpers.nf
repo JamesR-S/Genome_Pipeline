@@ -1,5 +1,7 @@
 // --- Published-output status dictionary ---
 def buildStatusById(List<List> rows) {
+    def forceAll = params.rerun_all as boolean
+    def metricsDir = "${params.batchDir}/r04_metrics"
     def statusById = [:]
     rows.each { row ->
         def id = row[0] as String
@@ -36,7 +38,7 @@ def buildStatusById(List<List> rows) {
         def ins_size_stats = file("${params.batchDir}/r04_metrics/${id}.insertSize.stats")
         def ins_size_hist = file("${params.batchDir}/r04_metrics/${id}.insertSize.histogram")
 
-        def clip_rate = file("${params.batchDir}/r04_metrics/${id}.insertSize.clipRate") 
+        def clip_rate = file("${params.batchDir}/r04_metrics/${id}.clipRate") 
 
         def batch_cov_index = file("${params.batchDir}/r04_metrics/Coverage.indexed")
 
@@ -68,34 +70,36 @@ def buildStatusById(List<List> rows) {
 
         def sample_homoz = file("${params.batchDir}/r04_metrics/${id}_homozygosity.csv")
 
-        def vep = file("${params.batchDir}/r04_vep/${id}_vep_annotated.vcf.gz")
-        def vep_csi  = file("${params.batchDir}/r04_vep/${id}_vep_annotated.vcf.gz.csi")
+        def vep = file("${params.batchDir}/r04_vep/${fam}_vep_annotated.vcf.gz")
+        def vep_csi  = file("${params.batchDir}/r04_vep/${fam}_vep_annotated.vcf.gz.csi")
 
         // dependent on indexed coverage
 
         def cov_rep = file("${params.batchDir}/r04_metrics/coverage_report")
 
-        def qc_needed = !fq_qc.exists()
-        def cram_needed = !cram.exists() || !crai.exists()
-        def dup_metrics_needed = !dup_metrics.exists()
-        def cymegv_needed = !cymegv_sample.exists() || !cymegv_batch.exists()
-        def te_needed = !TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists()
-        def snv_needed = !snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists()
-        def contam_needed = !contam.exists() && !contam_small.exists()
-        def cov_needed = !cov_binner.exists() || !ins_size_stats.exists() || !ins_size_hist.exists() || !clip_rate.exists() || !batch_cov_index.exists()
-        def cnv_needed = !manta_cnv_vcf.exists() || !manta_cnv_tbi.exists()
-        def survindel_needed = !survindel.exists()
-        def parliament_needed = !parliament.exists()
-        def denovocnn_needed = !denovocnn.exists() && trio != "NA"
-        def denovoLI_needed = !denovoLI.exists() && trio != "NA"
-        def exphunter_needed = !exphunter_locus.exists() || !exphunter_motif.exists() || !exphunter_profile.exists()
-        def fam_vcf_needed = !snv_fam_vcf.exists() || !snv_fam_csi.exists()
-        def ancestry_needed = !ancestry.exists()
-        def relatedness_needed = !relatedness.exists()
-        def batch_homoz_needed = !batch_homoz.exists() 
-        def sample_homoz_needed = !sample_homoz.exists()
-        def vep_needed = !vep.exists() || !vep_csi.exists()
-        def bam_needed = dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed 
+        def qc_needed = !fq_qc.exists() || forceAll
+        def cram_needed = !cram.exists() || !crai.exists() || forceAll
+        def dup_metrics_needed = !dup_metrics.exists() || forceAll
+        def cymegv_needed = !cymegv_sample.exists() || !cymegv_batch.exists() || forceAll
+        def te_needed = !TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists() || forceAll
+        def snv_needed = !snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists() || forceAll
+        def contam_needed = !contam.exists() && !contam_small.exists() || forceAll
+        def cov_needed = !cov_binner.exists() || !ins_size_stats.exists() || !ins_size_hist.exists() || !clip_rate.exists() || !batch_cov_index.exists() || forceAll
+        def cnv_needed = !manta_cnv_vcf.exists() || !manta_cnv_tbi.exists() || forceAll
+        def survindel_needed = !survindel.exists() || forceAll
+        def parliament_needed = !parliament.exists() || forceAll
+        def denovocnn_needed = (!denovocnn.exists() || forceAll ) && trio != "NA"
+        def denovoLI_needed = (!denovoLI.exists() || forceAll) && trio != "NA"
+        def exphunter_needed = !exphunter_locus.exists() || !exphunter_motif.exists() || !exphunter_profile.exists() || forceAll
+        def fam_vcf_needed = !snv_fam_vcf.exists() || !snv_fam_csi.exists() || forceAll
+        def ancestry_needed = !ancestry.exists() || forceAll
+        def relatedness_needed = !relatedness.exists() || forceAll
+        def batch_homoz_needed = !batch_homoz.exists() || forceAll
+        def sample_homoz_needed = !sample_homoz.exists() || forceAll
+        def vep_needed = !vep.exists() || !vep_csi.exists() || forceAll
+        def bam_needed = dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || forceAll
+        def upd_needed = !allPairFilesExist(fam, metricsDir, '_UPD.csv', true) || forceAll
+        def shared_haps_needed = !allPairFilesExist(fam, metricsDir, '_homozygosity.csv', false) || forceAll
 
         statusById[id] = [
             qc_needed: qc_needed,
@@ -118,6 +122,8 @@ def buildStatusById(List<List> rows) {
             relatedness_needed: relatedness_needed,
             batch_homoz_needed: batch_homoz_needed,
             sample_homoz_needed: sample_homoz_needed,
+            shared_haps_needed: shared_haps_needed,
+            upd_needed: upd_needed,
             vep_needed: vep_needed,
             cram: cram,
             crai: crai,
@@ -303,5 +309,47 @@ def makeParsedLines(File controlFile) {
     }
     return lines
 }
+
+/**
+ * Build the list of expected UPD files for a family.
+ * - orderedPairs=true matches your current bash loop (A-B and B-A).
+ * - orderedPairs=false expects only i<j (A-B once).
+ */
+def expectedPairFiles(String family, String outDir, String suffix='_UPD.csv', boolean orderedPairs=true) {
+    def ids = (family ?: '')
+        .tokenize('-')
+        .findAll { it }        // drop blanks
+        .unique()              // safety; shouldn't happen but harmless
+
+    def files = []
+    if( orderedPairs ) {
+        ids.each { a ->
+            ids.each { b ->
+                if( a == b ) return
+                files << file("${outDir}/${a}-${b}${suffix}")
+            }
+        }
+    } else {
+        for( int i=0; i<ids.size(); i++ ) {
+            for( int j=i+1; j<ids.size(); j++ ) {
+                files << file("${outDir}/${ids[i]}-${ids[j]}${suffix}")
+            }
+        }
+    }
+    return files
+}
+
+/** True if ALL expected pair files exist; false if any are missing. */
+def allPairFilesExist(String family, String outDir, String suffix='_UPD.csv', boolean orderedPairs=true) {
+    def expected = expectedPairFiles(family, outDir, suffix, orderedPairs)
+    return expected.every { it.exists() }
+}
+
+/** Return missing files (useful for debugging) */
+def missingPairFiles(String family, String outDir, String suffix='_UPD.csv', boolean orderedPairs=true) {
+    def expected = expectedPairFiles(family, outDir, suffix, orderedPairs)
+    return expected.findAll { !it.exists() }
+}
+
 
 workflow HELPERS { }
