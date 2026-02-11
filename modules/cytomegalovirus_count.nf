@@ -2,9 +2,9 @@
 process CYTOMEGALOVIRUS_COUNT {
     cpus 4
     tag "batch_${id[0]}"
-    publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy', overwrite: true, failOnError: true
+    //publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy', overwrite: true, failOnError: true
     container 'docker://amazoncorretto:21.0.7'
-    containerOptions "-B ${params.javaDir} -B ${params.gatkJar}"
+    containerOptions "-B ${params.javaDir} -B ${params.gatkJar} -B ${params.batchDir} -B ${params.rsync}"
     input:
       tuple val(id), file(sam), file(cfq)
     output:
@@ -14,5 +14,33 @@ process CYTOMEGALOVIRUS_COUNT {
       java -Xmx1g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir}:${params.gatkJar}:${params.javaDir}/jars/htsjdk-4.2.0.jar CytomegalovirusCountNF \\
         ${id.join(' ')} \\
         > stats
+
+      DEST_DIR="${params.batchDir}/r04_cytomegalovirus"
+      mkdir -p "\$DEST_DIR"
+
+      SRC_FILE="stats"
+      TMP_FILE=".stats.partial.\$\$"
+
+      attempts=5
+      delay=10
+
+      for i in \$(seq 1 \$attempts); do
+        # copy to temp name first
+        if ${params.rsync} -a --checksum --delay-updates --partial \
+            "\$SRC_FILE" "\$DEST_DIR/\$TMP_FILE" ; then
+          # then rename into place
+          mv -f "\$DEST_DIR/\$TMP_FILE" "\$DEST_DIR/\$SRC_FILE"
+          break
+        fi
+        echo "rsync failed (attempt \$i/\$attempts) — retrying in \${delay}s" >&2
+        sleep "\$delay"
+      done
+
+      # if temp still exists, we never successfully promoted to final name
+      if [[ -e "\$DEST_DIR/\$TMP_FILE" ]]; then
+        echo "Publish failed: temp file still present: \$DEST_DIR/\$TMP_FILE" >&2
+        exit 1
+      fi
+
       """
 }

@@ -3,9 +3,9 @@ process DENOVOCNN {
     cpus 16
     memory '224 GB'
     container 'docker://jamesrusssilsby/denovocnn:latest'
-    containerOptions('-B /usr/lib/locale/:/usr/lib/locale/')
+    containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync}")
     
-    publishDir "${params.batchDir}/r04_denovocnn", mode: 'copy', overwrite: true, failOnError: true
+    // publishDir "${params.batchDir}/r04_denovocnn", mode: 'copy', overwrite: true, failOnError: true
     
     input:
       tuple val(id), val(trio_ids), file(bam), file(bai), file(vcf), file(csi)
@@ -48,6 +48,32 @@ process DENOVOCNN {
       tail -q -n +2 predictions_part_variants*.csv) \
       | awk '\$5 >= 0.5' > ${trio_ids.join('-')}_denovos.filtered.txt
 
+      DEST_DIR="${params.batchDir}/r04_denovocnn"
+      mkdir -p "\$DEST_DIR"
+
+      SRC_FILE="${trio_ids.join('-')}_denovos.filtered.txt"
+      TMP_FILE=".${trio_ids.join('-')}_denovos.filtered.txt.partial.\$\$"
+
+      attempts=5
+      delay=10
+
+      for i in \$(seq 1 \$attempts); do
+        # copy to temp name first
+        if ${params.rsync} -a --checksum --delay-updates --partial \
+            "\$SRC_FILE" "\$DEST_DIR/\$TMP_FILE" ; then
+          # then rename into place
+          mv -f "\$DEST_DIR/\$TMP_FILE" "\$DEST_DIR/\$SRC_FILE"
+          break
+        fi
+        echo "rsync failed (attempt \$i/\$attempts) — retrying in \${delay}s" >&2
+        sleep "\$delay"
+      done
+
+      # if temp still exists, we never successfully promoted to final name
+      if [[ -e "\$DEST_DIR/\$TMP_FILE" ]]; then
+        echo "Publish failed: temp file still present: \$DEST_DIR/\$TMP_FILE" >&2
+        exit 1
+      fi
         
       """
 }

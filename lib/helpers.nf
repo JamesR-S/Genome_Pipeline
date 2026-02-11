@@ -211,4 +211,97 @@ def parseLineToTupleSpring(String line) {
         return [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
 }
 
+def makeParsedLines(File controlFile) {
+    def families = []
+    def trios    = []
+    def maleList = []
+    def femaleList = []
+    def fastqRecords = []
+    def sampleSet = new HashSet<String>()
+
+    controlFile.eachLine { line ->
+        line = line.trim()
+        if(!line) return
+        def tokens = line.split(/\s+/)
+        if(line.startsWith("FAMILY")) {
+            families << tokens[1..-1]
+        } else if(line.startsWith("TRIO")) {
+            trios << tokens[1..-1]
+        } else if(line.startsWith("MALE")) {
+            maleList.addAll(tokens[1..-1])
+        } else if(line.startsWith("FEMALE")) {
+            femaleList.addAll(tokens[1..-1])
+        } else if(line.startsWith("FASTQ")) {
+            fastqRecords << [sample:tokens[1], platform:tokens[2], flowcell:tokens[3], fastq1:tokens[4], fastq2:tokens[5]]
+            sampleSet << tokens[1]
+        } else if(line.startsWith("SPRING")) {
+            def base = tokens[4].replaceAll(/\.spring$/, '')
+            fastqRecords << [sample:tokens[1], platform:tokens[2], flowcell:tokens[3], fastq1:base, fastq2:base]
+            sampleSet << tokens[1]
+        }
+    }
+
+    def familyDict = [:].withDefault{ new HashSet<String>() }
+    families.each { famLine ->
+        def famName = famLine.join('-')
+        familyDict[famName].addAll(famLine)
+    }
+
+    def trioDict = [:].withDefault{ new HashSet<String>() }
+    trios.each { triLine ->
+        def trioName = triLine.join('-')
+        trioDict[trioName].addAll(triLine)
+    }
+
+    def laneCounts = [:].withDefault{0}
+    fastqRecords.each { rec -> laneCounts[rec.sample] = laneCounts[rec.sample] + 1 }
+
+    def familySizes = [:]
+    familyDict.each { fname, members -> familySizes[fname] = members.size() }
+
+    def getSex = { String s ->
+        def isMale = maleList.contains(s)
+        def isFemale = femaleList.contains(s)
+        if(isMale && isFemale) return "conflict"
+        if(isMale) return "male"
+        if(isFemale) return "female"
+        return "NA"
+    }
+
+    def getFamily = { String s ->
+        def found = familyDict.find { k,v -> v.contains(s) }
+        return found ? found.key : "NA"
+    }
+
+    def getTrio = { String s ->
+        def found = trioDict.find { k,v -> v.contains(s) }
+        return found ? found.key : "NA"
+    }
+
+    // Produce the same parsed lines format as CONTROL_PARSER
+    def lines = []
+    fastqRecords.each { rec ->
+        def s = rec.sample
+        def sex = getSex(s)
+        def fam = getFamily(s)
+        def trio = getTrio(s)
+        def laneCount = laneCounts[s]
+        def famCount  = (fam != "NA") ? (familySizes[fam] ?: 0) : 0
+
+        lines << (
+            "sample=${s};" +
+            "platform=${rec.platform};" +
+            "flowcell=${rec.flowcell};" +
+            "sex=${sex};" +
+            "family=${fam};" +
+            "trio=${trio};" +
+            "fastq1=${rec.fastq1};" +
+            "fastq2=${rec.fastq2};" +
+            "sampleLaneCount=${laneCount};" +
+            "familySampleCount=${famCount}"
+        )
+    }
+    return lines
+}
+
 workflow HELPERS { }
