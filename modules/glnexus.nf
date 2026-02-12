@@ -23,7 +23,7 @@ process GLNEXUS {
     DEST_DIR="${params.batchDir}/r04_vcfs"
     mkdir -p "\$DEST_DIR"
 
-    STAGE_DIR="\$DEST_DIR/.stage.${family}.\${NXF_TASK_ID}.\$\$"
+    STAGE_DIR="\$DEST_DIR/.stage.${family}.\$\$"
     rm -rf "\$STAGE_DIR"
     mkdir -p "\$STAGE_DIR/.partial"
 

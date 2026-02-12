@@ -20,7 +20,7 @@ process INSERT_SIZES {
         DEST_DIR="${params.batchDir}/r04_metrics"
         mkdir -p "\$DEST_DIR"
 
-        STAGE_DIR="\$DEST_DIR/.stage.${id}.\${NXF_TASK_ID}.\$\$"
+        STAGE_DIR="\$DEST_DIR/.stage.${id}.\$\$"
         rm -rf "\$STAGE_DIR"
         mkdir -p "\$STAGE_DIR/.partial"
 

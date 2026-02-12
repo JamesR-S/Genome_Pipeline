@@ -19,7 +19,7 @@ process HOMOZYGOSITY {
       DEST_DIR="${params.batchDir}/r04_metrics"
       mkdir -p "\$DEST_DIR"
 
-      STAGE_DIR="\$DEST_DIR/.stage.${id}.\${NXF_TASK_ID}.\$\$"
+      STAGE_DIR="\$DEST_DIR/.stage.${id}.sampleHZ.\$\$"
       rm -rf "\$STAGE_DIR"
       mkdir -p "\$STAGE_DIR/.partial"
 
@@ -87,7 +87,7 @@ process SHARED_HAPLOTYPES {
       DEST_DIR="${params.batchDir}/r04_metrics"
       mkdir -p "\$DEST_DIR"
 
-      STAGE_DIR="\$DEST_DIR/.stage.${id}.\${NXF_TASK_ID}.\$\$"
+      STAGE_DIR="\$DEST_DIR/.stage.${id}.shared_haps.\$\$"
       rm -rf "\$STAGE_DIR"
       mkdir -p "\$STAGE_DIR/.partial"
 
@@ -160,7 +160,7 @@ process UPD {
       DEST_DIR="${params.batchDir}/r04_metrics"
       mkdir -p "\$DEST_DIR"
 
-      STAGE_DIR="\$DEST_DIR/.stage.${id}.\${NXF_TASK_ID}.\$\$"
+      STAGE_DIR="\$DEST_DIR/.stage.${id}.UPD.\$\$"
       rm -rf "\$STAGE_DIR"
       mkdir -p "\$STAGE_DIR/.partial"
 

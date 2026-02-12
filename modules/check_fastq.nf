@@ -12,8 +12,9 @@ process CHECK_FASTQ {
       tuple val(meta.id), val(meta.sex), val(meta.family), val(meta.famSampleCount), file("${meta.id}_checkFastq.txt")
     script:
     """
+    mkdir tmp
 
-    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -cp ${params.javaDir} CheckFastq2 ${ fastq1.withIndex().collect { f1, idx -> "${f1} ${fastq2[idx]}" }.join(' ') } \\
+    java -Xmx4g -XX:ParallelGCThreads=4 -XX:ConcGCThreads=4 -Djava.io.tmpdir=\$PWD/tmp -cp ${params.javaDir} CheckFastq2 ${ fastq1.withIndex().collect { f1, idx -> "${f1} ${fastq2[idx]}" }.join(' ') } \\
     > ${meta.id}_checkFastq.txt
 
       DEST_DIR="${params.batchDir}/r04_metrics"
@@ -40,7 +41,8 @@ process CHECK_FASTQ {
       # if temp still exists, we never successfully promoted to final name
       if [[ -e "\$DEST_DIR/\$TMP_FILE" ]]; then
         echo "Publish failed: temp file still present: \$DEST_DIR/\$TMP_FILE" >&2
-        exit 
+        exit
+      fi 
 
     
     """
