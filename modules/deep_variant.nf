@@ -71,7 +71,7 @@ process DEEP_VARIANT {
         rm -f "\$STAGE_DIR/"* 2>/dev/null || true
         mkdir -p "\$STAGE_DIR/.partial"
 
-        if ${params.rsync} -a --checksum --delay-updates \\
+        if ${params.rsync} -a --no-g --checksum --delay-updates \\
             --partial --partial-dir=".partial" \\
             "\${FILES[@]}" "\$STAGE_DIR/"; then
           ok=1
@@ -117,7 +117,7 @@ process DEEP_VARIANT {
         rm -f "\$STAGE_DIR/"* 2>/dev/null || true
         mkdir -p "\$STAGE_DIR/.partial"
 
-        if ${params.rsync} -a --checksum --delay-updates \\
+        if ${params.rsync} -a --no-g --checksum --delay-updates \\
             --partial --partial-dir=".partial" \\
             "\${FILES[@]}" "\$STAGE_DIR/"; then
           ok=1

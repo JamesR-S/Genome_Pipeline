@@ -24,7 +24,7 @@ process ALIGN_CYTOMEGALOVIRUS {
 
       for i in \$(seq 1 \$attempts); do
         # copy to temp name first
-        if rsync -a --checksum --delay-updates --partial \
+        if rsync -a --no-g --checksum --delay-updates --partial \
             "\$SRC_FILE" "\$DEST_DIR/\$TMP_FILE" ; then
           # then rename into place
           mv -f "\$DEST_DIR/\$TMP_FILE" "\$DEST_DIR/\$SRC_FILE"
