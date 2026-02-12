@@ -20,8 +20,8 @@ process CONTAM {
 process CONTAM_SMALL {
     tag "${id}"
     cpus 16
-    module 'SAMtools/1.9-foss-2018b'
-    module 'BCFtools/1.9-foss-2018b'
+    container 'docker://pegi3s/samtools_bcftools:1.9'
+    containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync}")
     // publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
