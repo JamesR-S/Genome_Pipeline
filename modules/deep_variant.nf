@@ -10,7 +10,7 @@ process DEEP_VARIANT {
       t > 108.h ? 108.h : t
     }
 
-    container 'docker://google/deepvariant:1.9.0'
+    container 'docker://jamescraufurd/deepvariant:1.9.0-hla'
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync}")
     // publishDir (
     // path: "${params.batchDir}",
