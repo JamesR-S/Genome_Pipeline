@@ -1,6 +1,6 @@
 process BAM2CRAM {
     cpus 8
-    publishDir "${params.batchDir}/r04_assembly", mode: 'copy', overwrite: true, failOnError: true
+    // publishDir "${params.batchDir}/r04_assembly", mode: 'copy', overwrite: true, failOnError: true
     container 'mgibio/samtools:v1.21-noble'
     containerOptions "-B ${params.resourcesDir}"
     tag "${id}"
