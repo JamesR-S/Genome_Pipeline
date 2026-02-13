@@ -30,6 +30,9 @@ def buildStatusById(List<List> rows) {
         def snv_gvcf = file("${params.batchDir}/r04_gvcfs/${id}.g.vcf.gz")
         def snv_gvcf_csi = file("${params.batchDir}/r04_gvcfs/${id}.g.vcf.gz.csi")
 
+        def hla_gvcf = file("${params.batchDir}/r04_hla_vcfs/${id}_hla.vcf.gz")
+        def hla_vcf = file("${params.batchDir}/r04_hla_vcfs/${id}_hla.g.vcf.gz")
+
         def contam = file("${params.batchDir}/r04_metrics/${id}_cleanCall.csv")
         def contam_small = file("${params.batchDir}/r04_metrics/${id}_cleanCall_small.csv")
 
@@ -95,9 +98,10 @@ def buildStatusById(List<List> rows) {
         def ancestry_needed = !ancestry.exists() || forceAll
         def relatedness_needed = !relatedness.exists() || forceAll
         def batch_homoz_needed = !batch_homoz.exists() || forceAll
+        def hla_needed = !hla_vcf.exists() || !hla_gvcf.exists() || forceAll
         def sample_homoz_needed = !sample_homoz.exists() || forceAll
         def vep_needed = !vep.exists() || !vep_csi.exists() || forceAll
-        def bam_needed = dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || forceAll
+        def bam_needed = dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || hla_needed || forceAll
         def upd_needed = !allPairFilesExist(fam, metricsDir, '_UPD.csv', true) || forceAll
         def shared_haps_needed = !allPairFilesExist(fam, metricsDir, '_homozygosity.csv', false) || forceAll
 
@@ -109,6 +113,7 @@ def buildStatusById(List<List> rows) {
             cymegv_needed: cymegv_needed,
             te_needed: te_needed,
             snv_needed: snv_needed,
+            hla_needed: hla_needed,
             contam_needed: contam_needed,
             cov_needed: cov_needed,
             cnv_needed: cnv_needed,
