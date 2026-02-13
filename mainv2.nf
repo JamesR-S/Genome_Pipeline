@@ -13,6 +13,7 @@ include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
 include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
+include { HLA_REGION } from './subworkflows/hla_region.nf'
 include { QC } from './subworkflows/qc.nf'
 include { CNV_CALLING } from './subworkflows/cnv_calling.nf'
 include { ANNOTATION } from './subworkflows/annotation.nf'
@@ -208,6 +209,12 @@ workflow {
 
       SNV_INDEL_CALLING.out.single_sample
         .set { ch_single_sample_vcf }
+
+      ch_final_bam
+        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].hla_needed }
+        .set { ch_hla_bam }
+
+      HLA_REGION(ch_hla_bam)
 
       BATCH_RELATEDNESS (ch_combined_vcf)      
 
