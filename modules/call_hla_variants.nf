@@ -14,8 +14,6 @@ process CALL_HLA_VARIANTS {
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync} -B ${params.chr6_fasta} -B ${params.chr6_fasta}.fai")  
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
-      file(Fasta)
-      file(Fai)
     output:
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}_hla.g.vcf.gz"), file("${id}_hla.g.vcf.gz.csi"), emit: gvcf 
       tuple val(id), val(sex), val(family), val(famSampleCount), file("${id}_hla.vcf.gz"), file("${id}_hla.vcf.gz.csi"), emit: vcf

@@ -19,9 +19,9 @@ process CONTAM {
 
 process CONTAM_SMALL {
     tag "${id}"
-    cpus 16
-    container 'docker://pegi3s/samtools_bcftools:1.9'
-    containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync}")
+    cpus 2
+    container 'docker://vanallenlab/samtools_bcftools_htslib:1.9'
+    containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync} -B ${params.referenceFasta} -B ${params.resourcesDir} -B ${params.software}")
     // publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)
@@ -29,7 +29,7 @@ process CONTAM_SMALL {
       tuple val(id), file("${id}_cleanCall.csv")
     script:
       """
-      samtools view -@16 -q 20 -F 0x0704 -uh ${id}.bam chr2 | samtools calmd -@16 -AEur - ${params.referenceFasta} |  samtools mpileup -@ 16 -s -O -f ${params.referenceFasta} -d 255 -l ${params.resourcesDir}/ExAC.r0.1.sites.vep.AF5.chr2.giab.liftover_b38.vcf - | bgzip -c > cleanCall_small.pileup.${id}.txt.gz
+      samtools view -q 20 -F 0x0704 -uh ${id}.bam chr2 | samtools calmd -AEur - ${params.referenceFasta} |  samtools mpileup -s -O -f ${params.referenceFasta} -d 255 -l ${params.resourcesDir}/ExAC.r0.1.sites.vep.AF5.chr2.giab.liftover_b38.vcf - | bgzip -c > cleanCall_small.pileup.${id}.txt.gz
       tabix -f -s 1 -b 2 -e 2 cleanCall_small.pileup.${id}.txt.gz
       ${params.software}/cleancall/bin/cleanCall verify --vcf ${params.resourcesDir}/ExAC.r0.1.sites.vep.AF5.chr2.giab.liftover_b38.vcf --minAF 0.01 --minCallRate 0.95 --out cleanCall_small.verify.${id} --mpu cleanCall_small.pileup.${id}.txt.gz --smID ${id} --maxDepth 20
       mv cleanCall_small.verify.${id}.selfSM ${id}_cleanCall.csv
