@@ -17,14 +17,12 @@ process EXTRACT_HLA {
         export TEMP="\$TMPDIR"
         export TMP="\$TMPDIR"
         
-        ${params.sambamba} markdup \
-                -t ${task.cpus} \
-                -f bam \
-                -L ${params.hla_regions} \
-                --show-progress \
-                --tmpdir="\$TMPDIR" \
-                ${bam} \
-                -o ${id}_hla_contigs.bam
+        ${params.sambamba} view \
+        -t 16 \
+        -f bam \
+        -L "${params.hla_regions}" \
+        "${bam}" \
+        -o "${id}_hla_contigs.bam"
 
         samtools index -@ 16 ${id}_hla_contigs.bam
         
