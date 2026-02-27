@@ -1,6 +1,8 @@
 // --- Published-output status dictionary ---
 def buildStatusById(List<List> rows) {
     def forceAll = params.rerun_all as boolean
+    def skip_parliament = params.skip_parliament as boolean
+    def skip_manta = params.skip_manta as boolean
     def metricsDir = "${params.batchDir}/r04_metrics"
     def statusById = [:]
     rows.each { row ->
@@ -88,9 +90,9 @@ def buildStatusById(List<List> rows) {
         def snv_needed = !snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists() || forceAll
         def contam_needed = !contam.exists() && !contam_small.exists() || forceAll
         def cov_needed = !cov_binner.exists() || !ins_size_stats.exists() || !ins_size_hist.exists() || !clip_rate.exists() || !batch_cov_index.exists() || forceAll
-        def cnv_needed = !manta_cnv_vcf.exists() || !manta_cnv_tbi.exists() || forceAll
+        def cnv_needed = (!manta_cnv_vcf.exists() || !manta_cnv_tbi.exists() || forceAll) && !skip_manta
         def survindel_needed = !survindel.exists() || forceAll
-        def parliament_needed = !parliament.exists() || forceAll
+        def parliament_needed = ( !parliament.exists() || forceAll ) && !skip_parliament
         def denovocnn_needed = (!denovocnn.exists() || forceAll ) && trio != "NA"
         def denovoLI_needed = (!denovoLI.exists() || forceAll) && trio != "NA"
         def exphunter_needed = !exphunter_locus.exists() || !exphunter_motif.exists() || !exphunter_profile.exists() || forceAll
