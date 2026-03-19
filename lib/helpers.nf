@@ -3,6 +3,7 @@ def buildStatusById(List<List> rows) {
     def forceAll = params.rerun_all as boolean
     def skip_parliament = params.skip_parliament as boolean
     def skip_manta = params.skip_manta as boolean
+    def align_only = params.align_only as boolean
     def metricsDir = "${params.batchDir}/r04_metrics"
     def statusById = [:]
     rows.each { row ->
@@ -82,30 +83,30 @@ def buildStatusById(List<List> rows) {
 
         def cov_rep = file("${params.batchDir}/r04_metrics/coverage_report")
 
-        def qc_needed = !fq_qc.exists() || forceAll
+        def qc_needed = (!fq_qc.exists() || forceAll) && !align_only
         def cram_needed = !cram.exists() || !crai.exists() || forceAll
-        def dup_metrics_needed = !dup_metrics.exists() || forceAll
-        def cymegv_needed = !cymegv_sample.exists() || !cymegv_batch.exists() || forceAll
-        def te_needed = !TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists() || forceAll
-        def snv_needed = !snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists() || forceAll
-        def contam_needed = !contam.exists() && !contam_small.exists() || forceAll
-        def cov_needed = !cov_binner.exists() || !ins_size_stats.exists() || !ins_size_hist.exists() || !clip_rate.exists() || !batch_cov_index.exists() || forceAll
-        def cnv_needed = (!manta_cnv_vcf.exists() || !manta_cnv_tbi.exists() || forceAll) && !skip_manta
-        def survindel_needed = !survindel.exists() || forceAll
-        def parliament_needed = ( !parliament.exists() || forceAll ) && !skip_parliament
-        def denovocnn_needed = (!denovocnn.exists() || forceAll ) && trio != "NA"
-        def denovoLI_needed = (!denovoLI.exists() || forceAll) && trio != "NA"
-        def exphunter_needed = !exphunter_locus.exists() || !exphunter_motif.exists() || !exphunter_profile.exists() || forceAll
-        def fam_vcf_needed = !snv_fam_vcf.exists() || !snv_fam_csi.exists() || forceAll
-        def ancestry_needed = !ancestry.exists() || forceAll
-        def relatedness_needed = !relatedness.exists() || forceAll
-        def batch_homoz_needed = !batch_homoz.exists() || forceAll
-        def hla_needed = !hla_vcf.exists() || !hla_gvcf.exists() || forceAll
-        def sample_homoz_needed = !sample_homoz.exists() || forceAll
-        def vep_needed = !vep.exists() || !vep_csi.exists() || forceAll
-        def bam_needed = dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || hla_needed || forceAll
-        def upd_needed = !allPairFilesExist(fam, metricsDir, '_UPD.csv', true) || forceAll
-        def shared_haps_needed = !allPairFilesExist(fam, metricsDir, '_homozygosity.csv', false) || forceAll
+        def dup_metrics_needed = (!dup_metrics.exists() || forceAll) && !align_only
+        def cymegv_needed = (!cymegv_sample.exists() || !cymegv_batch.exists() || forceAll) && !align_only
+        def te_needed = (!TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists() || forceAll) && !align_only
+        def snv_needed = (!snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists() || forceAll) && !align_only
+        def contam_needed = (!contam.exists() && !contam_small.exists() || forceAll) && !align_only
+        def cov_needed = (!cov_binner.exists() || !ins_size_stats.exists() || !ins_size_hist.exists() || !clip_rate.exists() || !batch_cov_index.exists() || forceAll) && !align_only
+        def cnv_needed = ((!manta_cnv_vcf.exists() || !manta_cnv_tbi.exists() || forceAll) && !skip_manta) && !align_only
+        def survindel_needed = (!survindel.exists() || forceAll) && !align_only
+        def parliament_needed = (( !parliament.exists() || forceAll ) && !skip_parliament) && !align_only
+        def denovocnn_needed = ((!denovocnn.exists() || forceAll ) && trio != "NA") && !align_only
+        def denovoLI_needed = ((!denovoLI.exists() || forceAll) && trio != "NA") && !align_only
+        def exphunter_needed = (!exphunter_locus.exists() || !exphunter_motif.exists() || !exphunter_profile.exists() || forceAll) && !align_only
+        def fam_vcf_needed = (!snv_fam_vcf.exists() || !snv_fam_csi.exists() || forceAll) && !align_only
+        def ancestry_needed = (!ancestry.exists() || forceAll) && !align_only
+        def relatedness_needed = (!relatedness.exists() || forceAll) && !align_only
+        def batch_homoz_needed = (!batch_homoz.exists() || forceAll) && !align_only
+        def hla_needed = (!hla_vcf.exists() || !hla_gvcf.exists() || forceAll) && !align_only
+        def sample_homoz_needed = (!sample_homoz.exists() || forceAll) && !align_only
+        def vep_needed = (!vep.exists() || !vep_csi.exists() || forceAll) && !align_only
+        def bam_needed = (dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || hla_needed || forceAll) && !align_only
+        def upd_needed = (!allPairFilesExist(fam, metricsDir, '_UPD.csv', true) || forceAll) && !align_only
+        def shared_haps_needed = (!allPairFilesExist(fam, metricsDir, '_homozygosity.csv', false) || forceAll) && !align_only
 
         statusById[id] = [
             qc_needed: qc_needed,
