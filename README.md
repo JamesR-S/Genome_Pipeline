@@ -115,14 +115,30 @@ Once the pipeline finishes successfully it will automatically run a cleanup step
 
 ### Family mode
 
-When family members are split across different WG batch directories, the pipeline can be run in a family-specific mode. In this mode it:
+When family members are split across different WG batch directories, the pipeline can be run in a family-specific mode. In this mode the pipeline:
 
 1. creates an artificial batch directory under `/ennis/projects/Research_Project-MRC147594/families/`
 2. symlinks the existing single-sample outputs for the requested WG IDs from their original batch directories under `/ennis/projects/Research_Project-MRC147594/WG*/WG*/`
 3. writes a synthetic `control` file for the requested family
 4. re-runs the family-level, trio-level, and family-batch coverage-style analyses in the artificial batch
 
-Example:
+To run family mode you must provide `--familyMode true` and `--familySampleIds` with a comma-separated list of WG IDs. For most runs this is all that is needed.
+
+The basic command is:
+
+```
+srun -p mrcq -c 2 nextflow run \
+	/lustre/projects/Research_Project-MRC147594/genome_sequencing/Genome_Pipeline/mainv2.nf \
+	--familyMode true \
+	--familySampleIds <WG_ID_1>,<WG_ID_2>,<WG_ID_3> \
+	-profile isca
+```
+
+The pipeline will then search the existing batch directories, find the source batch for each requested sample, build a synthetic family batch, and run the family-level analyses in that directory.
+
+If the requested samples match a `TRIO` line in the source batch control files, the trio analyses will also run automatically.
+
+For example, to rerun a trio that already exists in the source control files:
 
 ```
 srun -p mrcq -c 2 nextflow run \
@@ -132,6 +148,54 @@ srun -p mrcq -c 2 nextflow run \
 	-profile isca
 ```
 
-If the trio structure cannot be inferred from the source batch control files, the pipeline will treat exactly three requested samples as one trio in the order supplied. You can also provide explicit trio members with `--familyTrios`.
+If the requested samples do not form a trio in the source control files, then only the family-level analyses will run. For example, a proband, mother, and sibling can be run together as a family of three without forcing trio analysis:
+
+```
+srun -p mrcq -c 2 nextflow run \
+	/lustre/projects/Research_Project-MRC147594/genome_sequencing/Genome_Pipeline/mainv2.nf \
+	--familyMode true \
+	--familySampleIds WG2001,WG2002,WG2003 \
+	-profile isca
+```
+
+If needed, you can also define the trio structure explicitly with `--familyTrios`. This is useful when the trio cannot be inferred from the source control files but you still want the trio-level analyses to run.
+
+For example:
+
+```
+srun -p mrcq -c 2 nextflow run \
+	/lustre/projects/Research_Project-MRC147594/genome_sequencing/Genome_Pipeline/mainv2.nf \
+	--familyMode true \
+	--familySampleIds WG1733,WG1734,WG1735 \
+	--familyTrios WG1733,WG1735,WG1734 \
+	-profile isca
+```
+
+The IDs supplied to `--familyTrios` must also be present in `--familySampleIds`.
+
+By default the synthetic batch directory will be created under `/ennis/projects/Research_Project-MRC147594/genome_sequencing/families/` and named using the sample IDs joined by `-`. This can be changed with `--familyBaseDir` and `--familyName`.
+
+For example:
+
+```
+srun -p mrcq -c 2 nextflow run \
+	/lustre/projects/Research_Project-MRC147594/genome_sequencing/Genome_Pipeline/mainv2.nf \
+	--familyMode true \
+	--familySampleIds WG1733,WG1734,WG1735 \
+	--familyName family_1733_1734_1735 \
+	--familyBaseDir /ennis/projects/Research_Project-MRC147594/genome_sequencing/families \
+	-profile isca
+```
 
 If some samples do not have HLA outputs available in the source batches, you can suppress HLA linking and HLA reprocessing with `--skip_hla true`.
+
+For example:
+
+```
+srun -p mrcq -c 2 nextflow run \
+	/lustre/projects/Research_Project-MRC147594/genome_sequencing/Genome_Pipeline/mainv2.nf \
+	--familyMode true \
+	--familySampleIds WG1733,WG1734,WG1735 \
+	--skip_hla true \
+	-profile isca
+```

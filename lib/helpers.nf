@@ -383,6 +383,27 @@ def parseRequestedSampleIds(def raw) {
     return deduped
 }
 
+def parseRequestedTrios(def raw, Set<String> requestedIds = [] as Set) {
+    def trioIds = parseRequestedSampleIds(raw)
+    if( trioIds.isEmpty() ) return []
+
+    if( trioIds.size() % 3 != 0 ) {
+        throw new IllegalArgumentException(
+            "--familyTrios must contain a multiple of 3 sample IDs, received ${trioIds.size()}: ${trioIds.join(', ')}"
+        )
+    }
+
+    def trios = trioIds.collate(3)
+    def invalidIds = requestedIds ? trios.flatten().findAll { !requestedIds.contains(it) } : []
+    if( invalidIds ) {
+        throw new IllegalArgumentException(
+            "--familyTrios contains sample IDs not present in --familySampleIds: ${invalidIds.unique().join(', ')}"
+        )
+    }
+
+    return trios
+}
+
 def assertSafeSampleIds(List<String> sampleIds) {
     def bad = sampleIds.findAll { !(it ==~ /[A-Za-z0-9._-]+/) }
     if( bad ) {
@@ -549,11 +570,8 @@ def buildFamilyModeBatch() {
     def sexBySample = inferSexBySampleFromControls(batchDirs)
     def requestedSet = sampleIds as Set
     def inferredTrios = inferTriosFromControls(batchDirs, requestedSet)
-    def explicitTrios = parseRequestedSampleIds(params.familyTrios).collate(3).findAll { it.size() == 3 }
+    def explicitTrios = parseRequestedTrios(params.familyTrios, requestedSet)
     def trioList = explicitTrios ?: inferredTrios
-    if( trioList.isEmpty() && sampleIds.size() == 3 ) {
-        trioList = [sampleIds]
-    }
 
     def familyDir = new File(familyBaseDir, familyName)
     ensureDir(familyDir)
