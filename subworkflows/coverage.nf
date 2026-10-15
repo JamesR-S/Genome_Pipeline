@@ -64,7 +64,21 @@ workflow COVERAGE {
         INDEX_COVERAGE(ch_coverage,ch_control)
             .set { ch_index_coverage }
     }else {
-        ch_index_coverage = Channel.fromPath("${params.batchDir}/r04_metrics/Coverage.indexed")
+        def metaById = [:]
+    
+        makeParsedLines(new File("${params.batchDir}/control")).each { line ->
+            def meta = parseLineToMeta(line)
+            metaById[meta.id] = meta
+        }
+    
+        def ids = metaById.keySet().toList().sort()
+        def sexes = ids.collect { id -> metaById[id].sex }
+    
+        ch_index_coverage = Channel
+            .fromPath("${params.batchDir}/r04_metrics/Coverage.indexed")
+            .map { indexed ->
+                tuple(ids, sexes, indexed)
+            }
     }
 
     if( !file("${params.batchDir}/r04_metrics/coverage_report").exists() || params.rerun_all) {    
