@@ -23,7 +23,7 @@ process VEP {
         --plugin SpliceAI,snv=/data/spliceai_scores.raw.snv.hg38.vcf.gz,indel=/data/spliceai_scores.raw.indel.hg38.vcf.gz \
         --plugin Enformer,file=/data/enformer_grch38.vcf.gz \
         --plugin AlphaGenomeAtlas,scores=/data/alphagenome_variant_impact_score_snvs.tsv.gz,splicing=/data/combined_alphagenome_splicing_snvs.tsv.gz,contributions=/data/combined_ag_cond_linear_ensemble_20260417_feature_importance_indels_with_am_snvs.tsv.gz \
-        --custom file=/data/spliceai2.vcf.gz,short_name=SpliceAI2,format=vcf,type=exact,coords=0,fields=DG_DS%DL_DS%AG_DS%AL_DS%JG_DS%JL_DS%DG_DP%DL_DP%AG_DP%AL_DP%JG_DD%JG_AD%JL_DD%JL_AD \
+        --custom file=/data/spliceai2.vcf.gz,short_name=SpliceAI2,format=vcf,type=exact,coords=0,fields=SUMMARY%STRAND%DG_DS%DG_RS%DG_AS%DG_DP%DL_DS%DL_RS%DL_AS%DL_DP%AG_DS%AG_RS%AG_AS%AG_DP%AL_DS%AL_RS%AL_AS%AL_DP%JG_DS%JG_RS%JG_AS%JG_DD%JG_AD%JL_DS%JL_RS%JL_AS%JL_DD%JL_AD \
         --custom file=/data/primate_ai_3d.vcf.gz,short_name=PrimateAI_3D,format=vcf,type=exact,coords=0,fields=score%percentile%prediction \
         --custom file=/data/primate_ai_3d.vcf.gz,short_name=PrimateAI_3D,format=vcf,type=exact,coords=0,fields=score%percentile%prediction \
         --custom file=/data/clinvar.vcf.gz,short_name=ClinVar,format=vcf,type=exact,coords=0,fields=CLNSIG%CLNREVSTAT%CLNDN \
