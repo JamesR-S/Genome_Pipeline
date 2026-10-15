@@ -5,6 +5,7 @@ include { COVERAGE_BINNER } from '../modules/coverage_binner.nf'
 include { XY_COVERAGE } from '../modules/xy_coverage.nf'
 include { INSERT_SIZES } from '../modules/insert_sizes.nf'
 include { CLIP_RATE } from '../modules/clip_rate.nf'
+include { makeParsedLines; parseLineToMeta } from '../lib/helpers.nf'
 
 workflow COVERAGE {
     take:
