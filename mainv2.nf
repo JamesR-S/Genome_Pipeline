@@ -108,14 +108,26 @@ workflow {
       def needFQIds = metaById.keySet().findAll { id -> statusById[id].cram_needed || statusById[id].qc_needed} as Set
 
       if (spring_dir.isDirectory() && !params.forcefq) {
-        def springRows = controlLines
+        // use the FASTQ if both files are in fastq/ (top-up lanes), otherwise the SPRING file
+        def neededLines = controlLines.findAll { needFQIds.contains(parseLineToTuple(it, effectiveBatchDir)[0] as String) }
+        def hasFastq = { line -> def r = parseLineToTuple(line, effectiveBatchDir); r[8].exists() && r[9].exists() }
+
+        def springRows = neededLines
+            .findAll { !hasFastq(it) }
             .collect { parseLineToTupleSpring(it, effectiveBatchDir) }   // [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, spring ]
-            .findAll { row -> needFQIds.contains(row[0] as String) }
+        def fastqRows = neededLines
+            .findAll { hasFastq(it) }
+            .collect { parseLineToTuple(it, effectiveBatchDir) }         // [ id, platform, sex, family, trio, flowcell, laneCount, famSampleCount, fq1, fq2 ]
+
+        springRows.each { println "input ${it[0]} ${it[5]}: SPRING ${it[8]}" }
+        fastqRows.each  { println "input ${it[0]} ${it[5]}: FASTQ  ${it[8]} ${it[9]}" }
 
             Channel.from(springRows).set { ch_spring_need }
 
             SPRING2FQ (ch_spring_need)
-            SPRING2FQ.out.set { ch_fq }
+            SPRING2FQ.out
+            .mix(Channel.from(fastqRows))
+            .set { ch_fq }
 
       } else {
             Channel.from(controlLines)
