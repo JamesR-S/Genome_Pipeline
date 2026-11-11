@@ -6,7 +6,6 @@ params.familySourceRoot = params.containsKey('familySourceRoot') ? params.family
 params.familyBaseDir = params.containsKey('familyBaseDir') ? params.familyBaseDir : '/ennis/projects/Research_Project-MRC147594/genome_sequencing/families'
 params.familyName = params.containsKey('familyName') ? params.familyName : null
 params.familyTrios = params.containsKey('familyTrios') ? params.familyTrios : null
-params.skip_hla = params.containsKey('skip_hla') ? params.skip_hla.toString().toBoolean() : false
 
 def requestedFamilyIds = (params.containsKey('familySampleIds') ? params.familySampleIds : (params.containsKey('familySamples') ? params.familySamples : params.samples))
 def requestedFamilyList = requestedFamilyIds ? requestedFamilyIds.toString().split(/[,\s]+/).collect { it.trim() }.findAll { it } : []
@@ -32,7 +31,6 @@ include { FASTQ_TO_BAM } from './subworkflows/fastqtobam.nf'
 include { COVERAGE } from './subworkflows/coverage.nf'
 include { SNV_INDEL_CALLING } from './subworkflows/snv_indel_calling.nf'
 include { HOMOZYGOSITY_AND_HAPLOTYPES } from './subworkflows/homozygosity_and_haplotypes.nf'
-include { HLA_REGION } from './subworkflows/hla_region.nf'
 include { QC } from './subworkflows/qc.nf'
 include { CNV_CALLING } from './subworkflows/cnv_calling.nf'
 include { ANNOTATION } from './subworkflows/annotation.nf'
@@ -257,12 +255,6 @@ workflow {
       SNV_INDEL_CALLING.out.single_sample
         .mix(ch_single_sample_vcf_existing)
         .set { ch_single_sample_vcf }
-
-      ch_final_bam
-        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].hla_needed }
-        .set { ch_hla_bam }
-
-      HLA_REGION(ch_hla_bam)
 
       BATCH_RELATEDNESS (ch_combined_vcf)      
 

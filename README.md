@@ -186,16 +186,3 @@ srun -p mrcq -c 2 nextflow run \
 	--familyBaseDir /ennis/projects/Research_Project-MRC147594/genome_sequencing/families \
 	-profile isca
 ```
-
-If some samples do not have HLA outputs available in the source batches, you can suppress HLA linking and HLA reprocessing with `--skip_hla true`.
-
-For example:
-
-```
-srun -p mrcq -c 2 nextflow run \
-	/lustre/projects/Research_Project-MRC147594/genome_sequencing/Genome_Pipeline/mainv2.nf \
-	--familyMode true \
-	--familySampleIds WG1733,WG1734,WG1735 \
-	--skip_hla true \
-	-profile isca
-```
