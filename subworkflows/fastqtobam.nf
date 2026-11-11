@@ -9,6 +9,7 @@ workflow FASTQ_TO_BAM {
 
     main:
     BWA_MEM (ch_parsed)
+    BWA_MEM.out.bam
         .set { ch_bwa_out }
 
     ch_bwa_out

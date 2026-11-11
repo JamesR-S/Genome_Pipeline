@@ -1,0 +1,48 @@
+# Same image as the Dockerfile, built with apptainer on the cluster (run from this folder):
+#   sha256sum -c SHA256SUMS
+#   apptainer build --fakeroot bwa_mem_alt_aware-1.0.sif bwa_mem_alt_aware.def
+# To use it before it's pushed, copy it into the nextflow apptainer cache as jamescraufurd-bwa_mem_alt_aware-1.0.img
+
+Bootstrap: docker
+From: mambaorg/micromamba:1.5.10
+
+%files
+    bwa-postalt.js /opt/bwa-postalt.js
+    k8-0.2.5.tar.bz2 /opt/k8-0.2.5.tar.bz2
+
+%post
+    set -e
+    # procps for nextflow's task metrics, zlib/libstdc++ for k8
+    # (apt has to stay root here, there are no subuid mappings)
+    apt-get -o APT::Sandbox::User=root update
+    apt-get -o APT::Sandbox::User=root install -y --no-install-recommends procps bzip2 zlib1g libstdc++6
+    rm -rf /var/lib/apt/lists/*
+
+    micromamba install -y -n base -c conda-forge -c bioconda \
+        bwa-mem2=2.2.1 bwa=0.7.19 samtools=1.21
+    micromamba clean -a -y
+
+    # k8 release binary (the bioconda k8 0.2.5 clashes with bwa over zlib)
+    tar --no-same-owner -xjf /opt/k8-0.2.5.tar.bz2 -C /opt k8-0.2.5/k8-Linux
+    install -m 755 /opt/k8-0.2.5/k8-Linux /usr/local/bin/k8
+    rm -rf /opt/k8-0.2.5 /opt/k8-0.2.5.tar.bz2
+
+    mkdir -p /opt/bwakit
+    mv /opt/bwa-postalt.js /opt/bwakit/bwa-postalt.js
+    chmod 644 /opt/bwakit/bwa-postalt.js
+
+    # check the tools run
+    export PATH=/opt/conda/bin:$PATH
+    command -v ps > /dev/null
+    k8 /opt/bwakit/bwa-postalt.js -v | grep -qx r985
+    bwa-mem2 version 2>&1 | grep -q '^2\.2\.1'
+    bwa 2>&1 | grep -q 'Version: 0\.7\.19'
+    samtools --version | grep -q '^samtools 1\.21'
+
+%environment
+    export PATH=/opt/conda/bin:$PATH
+
+%labels
+    org.opencontainers.image.title bwa_mem_alt_aware
+    org.opencontainers.image.version 1.0
+    org.opencontainers.image.description bwa-mem2 2.2.1, bwa 0.7.19, samtools 1.21, k8 0.2.5, bwa-postalt.js (bwa v0.7.19)
