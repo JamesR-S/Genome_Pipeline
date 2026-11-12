@@ -50,3 +50,4 @@ process BWA_MEM {
             | samtools sort -n -@ 4 -l 1 -O BAM -o ${id}_${flowcell}_ns.bam -
         fi
         """
+}
