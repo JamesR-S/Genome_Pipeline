@@ -17,7 +17,7 @@ process SPRING2FQ {
 
     script:
       """
-      spring -d -i ${spring} -g -o \$(basename ${spring} .spring)_1.fq.gz \$(basename ${spring} .spring)_2.fq.gz
+      spring -d -i ${spring} -g --gzip-level 1 -o \$(basename ${spring} .spring)_1.fq.gz \$(basename ${spring} .spring)_2.fq.gz
       """
       
 }
