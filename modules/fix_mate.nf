@@ -13,9 +13,10 @@ process FIXMATE {
 
     script:
       """
-      echo "[${id}] samtools fixmate"
-      samtools fixmate -m -@ ${task.cpus} ${bam} - |
-      samtools view -@ ${task.cpus} -b -e 'exists([ms])' - |
-      samtools sort -@ ${task.cpus} -l 1 -O bam -o ${id}_fx.bam
+        echo "[${id}] samtools fixmate"
+        
+        samtools fixmate -m -u -@ ${task.cpus} ${bam} - |
+        samtools view -u -@ ${task.cpus} -e 'exists([ms])' - |
+        samtools sort -@ ${task.cpus} -l 1 -O BAM -o ${id}_fx.bam -
       """
 }
