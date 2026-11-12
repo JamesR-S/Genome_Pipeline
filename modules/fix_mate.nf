@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 process FIXMATE {
-    cpus 12
+    cpus 8
     container 'mgibio/samtools:v1.24'
     tag "${id}"
 
@@ -15,7 +15,7 @@ process FIXMATE {
       """
         echo "[${id}] samtools fixmate"
         
-        samtools fixmate -u -@ 4 ${bam} - |
-        samtools sort -@ 8 -l 1 -O BAM -o ${id}_fx.bam -
+        samtools fixmate -u -@ 2 ${bam} - |
+        samtools sort -@ 6 -l 1 -O BAM -o ${id}_fx.bam -
       """
 }
