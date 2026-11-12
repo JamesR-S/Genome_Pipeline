@@ -35,7 +35,7 @@ process BWA_MEM {
         }
         
         if [[ ${mode} -eq 1 ]]; then
-            echo "[${id}|${flowcell}] bwa-mem2 → name-sorted BAM"
+            echo "[${id}|${flowcell}] bwa-mem3 → name-sorted BAM"
             ${params.bwaMem3} mem -t 12 -M \
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.referenceFasta} ${fastq1} ${fastq2} \
