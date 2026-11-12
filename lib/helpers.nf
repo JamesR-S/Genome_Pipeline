@@ -98,7 +98,7 @@ def buildStatusById(List<List> rows, String batchDir) {
         def cram_needed = !cram.exists() || !crai.exists() || forceAll
         def dup_metrics_needed = (!dup_metrics.exists() || forceAll) && !align_only
         def cymegv_needed = (!cymegv_sample.exists() || !cymegv_batch.exists() || forceAll) && !align_only
-        def te_needed = ((!TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists() || forceAll) !skip_TE) && !align_only
+        def te_needed = ((!TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists() || forceAll) && !skip_TE) && !align_only
         def snv_needed = (!snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists() || forceAll) && !align_only
         def contam_needed = (!contam.exists() && !contam_small.exists() || forceAll) && !align_only
         def cov_needed = (!cov_binner.exists() || !ins_size_stats.exists() || !ins_size_hist.exists() || !clip_rate.exists() || !batch_cov_index.exists() || forceAll) && !align_only
