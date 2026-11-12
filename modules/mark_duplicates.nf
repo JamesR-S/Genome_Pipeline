@@ -1,9 +1,8 @@
 process MARKDUP {
   cpus 16
   //publishDir "${params.batchDir}/r04_assembly", mode: 'copy', overwrite: true, failOnError: true
-  container 'mgibio/samtools:v1.21-noble'
-  containerOptions "-B ${params.resourcesDir} -B ${params.sambamba} -B ${params.picardJar}  -B ${params.batchDir} -B ${params.rsync}"
   tag "${id}"
+  module 'SAMtools/1.22.1-GCC-14.2.0'
 
   input:
     tuple val(id), val(sex), val(family), val(trio),
@@ -20,7 +19,10 @@ process MARKDUP {
   tmp="${id}.tmp.bam"
   trap 'rm -f \$tmp' EXIT
   
-  ${params.sambamba} markdup -t ${task.cpus} -l 3 --show-progress --tmpdir=tmp ${fxbam} \$tmp
+  ${params.fastdup} --input "${fxbam}" \
+        --output "\$tmp" \
+        --metrics "${id}.dup_metrics.txt" \
+        --num-threads ${task.cpus}
   
   samtools view \
         -@ ${task.cpus} \
