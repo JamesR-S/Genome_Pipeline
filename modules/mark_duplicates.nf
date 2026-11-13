@@ -1,3 +1,4 @@
+
 process MARKDUP {
   cpus 16
   //publishDir "${params.batchDir}/r04_assembly", mode: 'copy', overwrite: true, failOnError: true
@@ -27,9 +28,9 @@ process MARKDUP {
   tmp="${id}.tmp.bam"
   trap 'rm -f \$tmp' EXIT
 
-  ${params.fastdup} --input "${fxbam}" \
-        --output "\$tmp" \
-        --metrics "${id}.dup_metrics.txt" \
+  ${params.fastdup} --input "${fxbam}" \\
+        --output "\$tmp" \\
+        --metrics "${id}.markdup_metrics" \\
         --num-threads ${task.cpus}
 
   # Preserve the deduplicated BAM
@@ -39,11 +40,11 @@ process MARKDUP {
   samtools index -@ ${task.cpus} ${id}.bam
 
   # Generate the archival CRAM from the same BAM
-  samtools view \
-        -@ ${task.cpus} \
-        -T "${params.referenceFasta}" \
-        -O cram \
-        -o ${id}.cram \
+  samtools view \\
+        -@ ${task.cpus} \\
+        -T "${params.referenceFasta}" \\
+        -O cram \\
+        -o ${id}.cram \\
         ${id}.bam
 
   samtools index -@ ${task.cpus} ${id}.cram
@@ -55,7 +56,7 @@ process MARKDUP {
   rm -rf "\$STAGE_DIR"
   mkdir -p "\$STAGE_DIR/.partial"
 
-  FILES=( "${id}.cram" "${id}.cram.crai" )
+  FILES=( "${id}.cram" "${id}.cram.crai" "${id}.markdup_metrics" )
 
   for f in "\${FILES[@]}"; do
     [[ -s "\$f" ]] || { echo "Missing/empty output: \$f" >&2; exit 1; }

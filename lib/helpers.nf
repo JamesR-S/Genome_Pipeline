@@ -27,9 +27,10 @@ def buildStatusById(List<List> rows, String batchDir) {
         def cram = file("${batchDir}/r04_assembly/${id}.cram")
         def crai = file("${batchDir}/r04_assembly/${id}.cram.crai")
         def fq_qc = file("${batchDir}/r04_metrics/${id}_checkFastq.txt")
+        def dup_metrics = file("${batchDir}/r04_assembly/${id}.markdup_metrics")
 
         // dependent on cram
-        def dup_metrics = file("${batchDir}/r04_assembly/${id}.markdup_metrics")
+        
 
         def cymegv_sample = file("${batchDir}/r04_cytomegalovirus/${id}_cytomegalovirus_grepped2.sam")
         def cymegv_batch = file("${batchDir}/r04_cytomegalovirus/stats")
@@ -95,8 +96,8 @@ def buildStatusById(List<List> rows, String batchDir) {
         def cov_rep = file("${batchDir}/r04_metrics/coverage_report")
 
         def qc_needed = (!fq_qc.exists() || forceAll) && !align_only
-        def cram_needed = !cram.exists() || !crai.exists() || forceAll
         def dup_metrics_needed = (!dup_metrics.exists() || forceAll) && !align_only
+        def cram_needed = !cram.exists() || !crai.exists() || dup_metrics_needed || forceAll
         def cymegv_needed = (!cymegv_sample.exists() || !cymegv_batch.exists() || forceAll) && !align_only
         def te_needed = ((!TE_ALU.exists() || !TE_L1.exists() || !TE_SVA.exists() || forceAll) && !skip_TE) && !align_only
         def snv_needed = (!snv_sample_vcf.exists() || !snv_sample_csi.exists() || !snv_gvcf.exists() || !snv_gvcf_csi.exists() || forceAll) && !align_only
@@ -115,7 +116,7 @@ def buildStatusById(List<List> rows, String batchDir) {
         def hla_needed = ((!hla_vcf.exists() || !hla_gvcf.exists() || forceAll) && !skip_hla) && !align_only
         def sample_homoz_needed = (!sample_homoz.exists() || forceAll) && !align_only
         def vep_needed = (!vep.exists() || !vep_csi.exists() || forceAll) && !align_only
-        def bam_needed = (dup_metrics_needed || cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || hla_needed || forceAll) && !align_only
+        def bam_needed = (cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || hla_needed || forceAll) && !align_only
         def upd_needed = (!allPairFilesExist(fam, metricsDir, '_UPD.csv', true) || forceAll) && !align_only
         def shared_haps_needed = (!allPairFilesExist(fam, metricsDir, '_homozygosity.csv', false) || forceAll) && !align_only
 
