@@ -9,29 +9,44 @@ process MARKDUP {
           val(famSampleCount), file(fxbam)
 
   output:
-    tuple val(id), val(sex), val(family), val(trio), val(famSampleCount),
-          file("${id}.cram"), file("${id}.cram.crai"), emit: cram
+      tuple val(id), val(sex), val(family), val(trio),
+            val(famSampleCount),
+            path("${id}.bam"), path("${id}.bam.bai"),
+            emit: bam
+
+      tuple val(id), val(sex), val(family), val(trio),
+            val(famSampleCount),
+            path("${id}.cram"), path("${id}.cram.crai"),
+            emit: cram
 
   script:
   """
   set -euo pipefail
   mkdir -p tmp
+
   tmp="${id}.tmp.bam"
   trap 'rm -f \$tmp' EXIT
-  
+
   ${params.fastdup} --input "${fxbam}" \
         --output "\$tmp" \
         --metrics "${id}.dup_metrics.txt" \
         --num-threads ${task.cpus}
-  
+
+  # Preserve the deduplicated BAM
+  mv "\$tmp" ${id}.bam
+
+  # Index it for downstream analysis
+  samtools index -@ ${task.cpus} ${id}.bam
+
+  # Generate the archival CRAM from the same BAM
   samtools view \
         -@ ${task.cpus} \
         -T "${params.referenceFasta}" \
         -O cram \
         -o ${id}.cram \
-        \$tmp
+        ${id}.bam
 
-  samtools index -@ ${task.cpus} "${id}.cram"
+  samtools index -@ ${task.cpus} ${id}.cram
 
   DEST_DIR="${params.batchDir}/r04_assembly"
   mkdir -p "\$DEST_DIR"

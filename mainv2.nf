@@ -146,21 +146,25 @@ workflow {
         .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].cram_needed }
         .set { ch_cram_fq }
 
-      FASTQ_TO_BAM (ch_cram_fq)
-      FASTQ_TO_BAM.out.set { ch_cram_new }
-      
-      def ch_final_cram = ch_cram_existing.mix(ch_cram_new)
+      FASTQ_TO_BAM(ch_cram_fq)
 
-      ch_final_cram
-        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].bam_needed }
-        .set { ch_cram_to_bam }  
+      // Newly aligned samples already have deduplicated BAMs.
+      // Only expose them to downstream work when needed.
+      def ch_bam_new = FASTQ_TO_BAM.out.bam
+          .filter { row ->
+              statusById[row[0]].bam_needed
+          }
 
-      CRAM2BAM (ch_cram_to_bam)
-      CRAM2BAM.out.set { ch_final_bam }
-      
-      ch_final_bam
-        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].dup_metrics_needed }
-        .set { ch_dup_metrics }
+      // Only pre-existing CRAMs need conversion back to BAM.
+      def ch_cram_to_bam = ch_cram_existing
+          .filter { row ->
+              statusById[row[0]].bam_needed
+          }
+
+      CRAM2BAM(ch_cram_to_bam)
+
+      // Both channels have the same BAM tuple structure.
+      def ch_final_bam = ch_bam_new.mix(CRAM2BAM.out)
 
       DUPMETRICS (ch_dup_metrics)
 
