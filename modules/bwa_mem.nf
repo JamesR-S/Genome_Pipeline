@@ -26,8 +26,7 @@ process BWA_MEM {
         postalt() {
             if [[ -f "${params.referenceFasta}.alt" ]]; then
                 echo "ALT file detected: running bwa-postalt.js" >&2
-                ${params.software}/bwa-mem/bwa-0.7.19/bwakit/k8-1.2/k8-x86_64-Linux \
-                  ${params.software}/bwa-mem/bwa-0.7.19/bwakit/bwa-postalt.js \
+                ${params.postaltrs} -t 4 \
                   ${params.referenceFasta}.alt
             else
                 cat
