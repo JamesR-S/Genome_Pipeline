@@ -40,21 +40,21 @@ process BWA_MEM {
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.referenceFasta} ${fastq1} ${fastq2} \
             | postalt \
-            | samtools sort -n -@ 4 -l 1 -O BAM -o ${id}_${flowcell}_ns.bam -
+            | ${params.mako} --order queryname --threads 4 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
         elif [[ ${mode} -eq 2 ]]; then
             echo "[${id}|${flowcell}] bwa-mem2 → name-sorted BAM"
             ${params.bwaMem2} mem -t 12 -M \
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.referenceFasta} ${fastq1} ${fastq2} \
             | postalt \
-            | samtools sort -n -@ 4 -l 1 -O BAM -o ${id}_${flowcell}_ns.bam -
+            | ${params.mako} --order queryname --threads 4 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
         else
             echo "Fallback to bwa → name-sorted BAM"
             ${params.bwaMem1} mem -t 12 -M \
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.resourcesDir}/bwa-mem1/\$(basename ${params.referenceFasta}) ${fastq1} ${fastq2} \
             | postalt \
-            | samtools sort -n -@ 4 -l 1 -O BAM -o ${id}_${flowcell}_ns.bam -
+            | ${params.mako} --order queryname --threads 4 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
         fi
         """
 }
