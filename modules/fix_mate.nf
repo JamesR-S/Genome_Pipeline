@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process FIXMATE {
     cpus 8
-    container 'mgibio/samtools:v1.24'
+    module 'SAMtools/1.22.1-GCC-14.2.0'
     tag "${id}"
 
     input:
@@ -16,6 +16,11 @@ process FIXMATE {
         echo "[${id}] samtools fixmate"
         
         samtools fixmate -u -@ 2 ${bam} - |
-        samtools sort -@ 6 -l 1 -O BAM -o ${id}_fx.bam -
+        ${params.mako} \
+            --order coordinate \
+            --threads 6 \
+            --compression-level 1 \
+            -i /dev/stdin \
+            -o "${id}_fx.bam"
       """
 }
