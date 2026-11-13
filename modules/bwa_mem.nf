@@ -26,7 +26,7 @@ process BWA_MEM {
         postalt() {
             if [[ -f "${params.referenceFasta}.alt" ]]; then
                 echo "ALT file detected: running bwa-postalt.js" >&2
-                ${params.postaltrs} -t 4 \
+                ${params.postaltrs} -t 3 \
                   ${params.referenceFasta}.alt
             else
                 cat
@@ -35,25 +35,25 @@ process BWA_MEM {
         
         if [[ ${mode} -eq 1 ]]; then
             echo "[${id}|${flowcell}] bwa-mem3 → name-sorted BAM"
-            ${params.bwaMem3} mem -t 12 -M \
+            ${params.bwaMem3} mem -t 10 -M \
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.referenceFasta} ${fastq1} ${fastq2} \
             | postalt \
-            | ${params.mako} --order queryname --threads 4 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
+            | ${params.mako} --order queryname --threads 3 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
         elif [[ ${mode} -eq 2 ]]; then
             echo "[${id}|${flowcell}] bwa-mem2 → name-sorted BAM"
-            ${params.bwaMem2} mem -t 12 -M \
+            ${params.bwaMem2} mem -t 10 -M \
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.referenceFasta} ${fastq1} ${fastq2} \
             | postalt \
-            | ${params.mako} --order queryname --threads 4 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
+            | ${params.mako} --order queryname --threads 3 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
         else
             echo "Fallback to bwa → name-sorted BAM"
-            ${params.bwaMem1} mem -t 12 -M \
+            ${params.bwaMem1} mem -t 10 -M \
               -R "@RG\\tID:${flowcell}\\tPL:${platform}\\tSM:${id}\\tLB:${id}_${flowcell}" \
               ${params.resourcesDir}/bwa-mem1/\$(basename ${params.referenceFasta}) ${fastq1} ${fastq2} \
             | postalt \
-            | ${params.mako} --order queryname --threads 4 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
+            | ${params.mako} --order queryname --threads 3 --compression-level 1 -i /dev/stdin -o "${id}_${flowcell}_ns.bam"
         fi
         """
 }
