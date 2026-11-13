@@ -164,9 +164,17 @@ workflow {
       CRAM2BAM(ch_cram_to_bam)
 
       // Both channels have the same BAM tuple structure.
+
       def ch_final_bam = ch_bam_new.mix(CRAM2BAM.out)
 
-      DUPMETRICS (ch_dup_metrics)
+      ch_final_bam
+          .filter { row ->
+              row[0] in statusById.keySet() &&
+              statusById[row[0]].dup_metrics_needed
+          }
+          .set { ch_dup_metrics }
+
+      DUPMETRICS(ch_dup_metrics)
 
       CNV_CALLING (ch_final_bam, ch_ref_fasta,ch_ref_fai,statusById)
 
