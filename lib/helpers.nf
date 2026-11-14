@@ -12,7 +12,6 @@ def buildStatusById(List<List> rows, String batchDir) {
     def forceAll = params.rerun_all as boolean
     def skip_parliament = params.skip_parliament as boolean
     def skip_manta = params.skip_manta as boolean
-    def skip_hla = params.skip_hla as boolean
     def skip_TE = params.skip_xTEA as boolean
     def align_only = params.align_only as boolean
     def metricsDir = "${batchDir}/r04_metrics"
@@ -44,9 +43,6 @@ def buildStatusById(List<List> rows, String batchDir) {
 
         def snv_gvcf = file("${batchDir}/r04_gvcfs/${id}.g.vcf.gz")
         def snv_gvcf_csi = file("${batchDir}/r04_gvcfs/${id}.g.vcf.gz.csi")
-
-        def hla_gvcf = file("${batchDir}/r04_hla_vcfs/${id}_hla.vcf.gz")
-        def hla_vcf = file("${batchDir}/r04_hla_vcfs/${id}_hla.g.vcf.gz")
 
         def contam = file("${batchDir}/r04_metrics/${id}_cleanCall.csv")
         def contam_small = file("${batchDir}/r04_metrics/${id}_cleanCall_small.csv")
@@ -113,10 +109,9 @@ def buildStatusById(List<List> rows, String batchDir) {
         def ancestry_needed = (!ancestry.exists() || forceAll) && !align_only
         def relatedness_needed = (!relatedness.exists() || forceAll) && !align_only
         def batch_homoz_needed = (!batch_homoz.exists() || forceAll) && !align_only
-        def hla_needed = ((!hla_vcf.exists() || !hla_gvcf.exists() || forceAll) && !skip_hla) && !align_only
         def sample_homoz_needed = (!sample_homoz.exists() || forceAll) && !align_only
         def vep_needed = (!vep.exists() || !vep_csi.exists() || forceAll) && !align_only
-        def bam_needed = (cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || hla_needed || forceAll) && !align_only
+        def bam_needed = (cymegv_needed || te_needed || snv_needed || cov_needed || cnv_needed || survindel_needed || parliament_needed || exphunter_needed || contam_needed || denovocnn_needed || denovoLI_needed || forceAll) && !align_only
         def upd_needed = (!allPairFilesExist(fam, metricsDir, '_UPD.csv', true) || forceAll) && !align_only
         def shared_haps_needed = (!allPairFilesExist(fam, metricsDir, '_homozygosity.csv', false) || forceAll) && !align_only
 
@@ -128,7 +123,6 @@ def buildStatusById(List<List> rows, String batchDir) {
             cymegv_needed: cymegv_needed,
             te_needed: te_needed,
             snv_needed: snv_needed,
-            hla_needed: hla_needed,
             contam_needed: contam_needed,
             cov_needed: cov_needed,
             cnv_needed: cnv_needed,
@@ -553,7 +547,6 @@ def writeTextFile(File dest, String text) {
 
 def buildFamilyModeBatch() {
     def familyMode = params.familyMode != null ? params.familyMode.toString().toBoolean() : false
-    def skipHla = params.skip_hla as boolean
     if( !familyMode ) return null
 
     def sampleIds = parseRequestedSampleIds(params.familySampleIds ?: params.familySamples ?: params.samples)
@@ -599,8 +592,6 @@ def buildFamilyModeBatch() {
         [dir:'r04_vcfs',                   file:{ id -> "${id}.vcf.gz.csi" },                       required:true ],
         [dir:'r04_gvcfs',                  file:{ id -> "${id}.g.vcf.gz" },                         required:true ],
         [dir:'r04_gvcfs',                  file:{ id -> "${id}.g.vcf.gz.csi" },                     required:true ],
-        [dir:'r04_hla_vcfs',               file:{ id -> "${id}_hla.g.vcf.gz" },                     required:!skipHla ],
-        [dir:'r04_hla_vcfs',               file:{ id -> "${id}_hla.vcf.gz" },                       required:!skipHla ],
         [dir:'r04_metrics',                file:{ id -> "${id}.coverageBinner" },                   required:true ],
         [dir:'r04_metrics',                file:{ id -> "${id}.insertSize.stats" },                 required:true ],
         [dir:'r04_metrics',                file:{ id -> "${id}.insertSize.histogram" },             required:true ],
@@ -611,8 +602,6 @@ def buildFamilyModeBatch() {
         [dir:'r04_expansionhunterdenovo',  file:{ id -> "${id}.motif.tsv" },                        required:true ],
         [dir:'r04_expansionhunterdenovo',  file:{ id -> "${id}.str_profile.json" },                 required:true ],
         [dir:'r04_metrics',                file:{ id -> "${id}.ancestry_assignment.tsv" },          required:true ],
-        [dir:'r04_hla_vcfs',               file:{ id -> "${id}_hla.g.vcf.gz.csi" },                 required:false ],
-        [dir:'r04_hla_vcfs',               file:{ id -> "${id}_hla.vcf.gz.csi" },                   required:false ],
         [dir:'r04_metrics',                file:{ id -> "${id}_cleanCall.csv" },                    required:false ],
         [dir:'r04_metrics',                file:{ id -> "${id}_cleanCall_small.csv" },              required:false ]
     ]

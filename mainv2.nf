@@ -261,12 +261,6 @@ workflow {
         .mix(ch_single_sample_vcf_existing)
         .set { ch_single_sample_vcf }
 
-      ch_final_bam
-        .filter { row -> row[0] in statusById.keySet() && statusById[row[0]].hla_needed }
-        .set { ch_hla_bam }
-
-      HLA_REGION(ch_hla_bam)
-
       BATCH_RELATEDNESS (ch_combined_vcf)      
 
       HOMOZYGOSITY_AND_HAPLOTYPES(ch_combined_vcf,statusById)
