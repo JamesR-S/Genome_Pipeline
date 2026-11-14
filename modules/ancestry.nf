@@ -14,9 +14,27 @@ process ANCESTRY {
 
     script:
     """
-    mkdir -p \$PWD/temp
-    mkdir -p \$PWD/ivy_cache
-    export TMPDIR=\$PWD/temp
+
+# Create task-specific temporary directories
+mkdir -p "\$PWD/temp"
+mkdir -p "\$PWD/temp/spark"
+mkdir -p "\$PWD/ivy_cache"
+
+# Python and standard temporary files
+export TMPDIR="\$PWD/temp"
+
+# Java temporary files (important for Spark startup)
+export JAVA_TOOL_OPTIONS="\${JAVA_TOOL_OPTIONS:-} -Djava.io.tmpdir=\$TMPDIR"
+
+# Spark local scratch files
+export SPARK_LOCAL_DIRS="\$PWD/temp/spark"
+
+# Optional diagnostics
+echo "TMPDIR: \$TMPDIR"
+echo "SPARK_LOCAL_DIRS: \$SPARK_LOCAL_DIRS"
+df -h "\$TMPDIR"
+df -i "\$TMPDIR"
+
 
     python3 <<EOF
 import os
@@ -39,34 +57,33 @@ read_if_exists = True
 v3_num_pcs = 16
 v3_min_prob = 0.75
 
+
 work = os.getcwd()
-tmp_dir = f"{work}/temp"
-ivy_dir = f"{work}/ivy_cache"
+tmp_dir = os.path.join(work, "temp")
+spark_dir = os.path.join(tmp_dir, "spark")
+ivy_dir = os.path.join(work, "ivy_cache")
 
 os.makedirs(tmp_dir, exist_ok=True)
+os.makedirs(spark_dir, exist_ok=True)
 os.makedirs(ivy_dir, exist_ok=True)
-os.environ["TMPDIR"] = tmp_dir
 
 hl.init(
     tmp_dir=tmp_dir,
+    local_tmpdir=tmp_dir,
     spark_conf={
-        # Memory (tune to your container limits)
         "spark.driver.memory": "8g",
         "spark.executor.memory": "8g",
 
-        # Keep Spark temp/local on our mounted tmp path
-        "spark.local.dir": tmp_dir,
-
-        # Correct Ivy cache location (for jar resolution)
+        "spark.local.dir": spark_dir,
         "spark.jars.ivy": ivy_dir,
 
-        # Safer defaults for single-node runs
         "spark.driver.maxResultSize": "0",
         "spark.sql.shuffle.partitions": "64",
         "spark.ui.enabled": "false",
         "spark.eventLog.enabled": "false",
     },
 )
+
 
 hl.default_reference('GRCh38')
 
