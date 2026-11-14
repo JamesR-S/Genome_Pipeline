@@ -29,11 +29,27 @@ process MANTA {
       """
       mkdir manta_rundir
 
+      # Copy the installed Manta configuration
+      MANTA_INI="\$(dirname "\$(command -v configManta.py)")/configManta.py.ini"
+      cp "\$MANTA_INI" manta.cnv.ini
+
+      # Disable expensive remote read retrieval
+      sed -i \
+        's/^enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 1$/enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 0/' \
+        manta.cnv.ini
+
+      # Fail if the setting wasn't successfully changed
+      grep -qx \
+        'enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 0' \
+        manta.cnv.ini || exit 1
+
       configManta.py \
+        --config manta.cnv.ini \
         --reference ${fasta} \
         --runDir manta_rundir \
         --callRegions ${mantaBed} \
         ${inBamStr}
+        
       sed -i "s/smtplib\\.SMTP('localhost')/smtplib.SMTP('localhost', timeout=2)/" manta_rundir/runWorkflow.py
       python manta_rundir/runWorkflow.py -j ${task.cpus} -m local -g 100
       mv manta_rundir/results/variants/diploidSV.vcf.gz ${id.join("-")}.SV.vcf.gz
