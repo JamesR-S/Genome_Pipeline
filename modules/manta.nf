@@ -35,7 +35,7 @@ process MANTA {
 
       # Disable expensive remote read retrieval
       sed -i \
-        's/^enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 1$/enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 0/' \
+        's/^enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 1\$/enableRemoteReadRetrievalForInsertionsInGermlineCallingModes = 0/' \
         manta.cnv.ini
 
       # Fail if the setting wasn't successfully changed
