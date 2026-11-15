@@ -62,7 +62,7 @@ workflow COVERAGE {
     // Keep the existing Coverage.indexed output contract for downstream tools.
     // Set params.coverageEngine = 'java' for a quick rollback if required.
     def coverageEngine = params.coverageEngine ?: 'rust'
-    def needsIndexedCoverage = !file("${params.batchDir}/r04_metrics/Coverage.indexed").exists() || params.rerun_all || (params.rerun_coverage ?: false)
+    def needsIndexedCoverage = !file("${params.batchDir}/r04_metrics/Coverage.indexed").exists() || params.rerun_all 
     if (needsIndexedCoverage) {
         if (coverageEngine == 'rust') {
             def rustBinary = params.coverageRustBin ?: error('Set params.coverageRustBin to the compiled coverage-rs executable')
