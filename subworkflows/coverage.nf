@@ -1,4 +1,5 @@
 include { DEPTH_OF_COVERAGE } from '../modules/depth_of_coverage.nf'
+include { RUST_COVERAGE } from '../modules/rust_coverage.nf'
 include { INDEX_COVERAGE } from '../modules/index_coverage.nf'
 include { COVERAGE_REPORT } from '../modules/coverage_report.nf'
 include { COVERAGE_BINNER } from '../modules/coverage_binner.nf'
@@ -58,13 +59,31 @@ workflow COVERAGE {
 
     CLIP_RATE(ch_final_bam.filter { row -> needsClipRate(row[0] as String) })
 
-    if( !file("${params.batchDir}/r04_metrics/Coverage.indexed").exists() || params.rerun_all) {
-        DEPTH_OF_COVERAGE(ch_collapsed)
-            .set { ch_coverage }
+    // Keep the existing Coverage.indexed output contract for downstream tools.
+    // Set params.coverageEngine = 'java' for a quick rollback if required.
+    def coverageEngine = params.coverageEngine ?: 'rust'
+    def needsIndexedCoverage = !file("${params.batchDir}/r04_metrics/Coverage.indexed").exists() || params.rerun_all || (params.rerun_coverage ?: false)
+    if (needsIndexedCoverage) {
+        if (coverageEngine == 'rust') {
+            def rustBinary = params.coverageRustBin ?: error('Set params.coverageRustBin to the compiled coverage-rs executable')
+            def metadataHelper = params.coverageRustMetadataHelper ?: error('Set params.coverageRustMetadataHelper to CompatMetadata.java')
+            def targetIntervals = params.coverageIntervals ?: "${params.base}/resources/grch38-v2-pipeline/variantcall.bed"
 
-        INDEX_COVERAGE(ch_coverage,ch_control)
-            .set { ch_index_coverage }
-    }else {
+            RUST_COVERAGE(ch_collapsed,
+                          ch_control,
+                          file(targetIntervals),
+                          file(rustBinary),
+                          file(metadataHelper))
+                .set { ch_index_coverage }
+        } else if (coverageEngine == 'java') {
+            DEPTH_OF_COVERAGE(ch_collapsed)
+                .set { ch_coverage }
+            INDEX_COVERAGE(ch_coverage, ch_control)
+                .set { ch_index_coverage }
+        } else {
+            error("Unknown params.coverageEngine '${coverageEngine}' (expected 'rust' or 'java')")
+        }
+    } else {
         def metaById = [:]
     
         makeParsedLines(new File("${params.batchDir}/control")).each { line ->
@@ -82,7 +101,7 @@ workflow COVERAGE {
             }
     }
 
-    if( !file("${params.batchDir}/r04_metrics/coverage_report").exists() || params.rerun_all) {    
+    if( !file("${params.batchDir}/r04_metrics/coverage_report").exists() || params.rerun_all || (params.rerun_coverage ?: false)) {    
         COVERAGE_REPORT(ch_index_coverage)
     }
 
