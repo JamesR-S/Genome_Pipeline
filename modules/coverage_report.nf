@@ -13,7 +13,7 @@ process COVERAGE_REPORT {
       """
       java -Xmx1g -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -cp ${params.javaDir} CoverageReport \\
         ${coverage} \\
-        ${params.easyRegions} \\
+        ${params.easyRegionsNoXY} \\
         > coverage_report
 
       DEST_DIR="${params.batchDir}/r04_metrics"
