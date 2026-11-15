@@ -3,7 +3,7 @@ process DENOVOCNN {
     cpus 16
     memory '224 GB'
     container 'docker://jamesrusssilsby/denovocnn:latest'
-    containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync}${params.familyMode ? " -B ${params.familySourceRoot}" : ""}")
+    containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.resourcesDir} -B ${params.batchDir} -B ${params.rsync}${params.familyMode ? " -B ${params.familySourceRoot}" : ""}")
     
     // publishDir "${params.batchDir}/r04_denovocnn", mode: 'copy', overwrite: true, failOnError: true
     
@@ -16,17 +16,36 @@ process DENOVOCNN {
     output:
       tuple val(id), val(trio_ids), file("${trio_ids.join('-')}_denovos.filtered.txt")
     script:
+
+      def minChildDP = 8
+      def minChildGQ = 10
+      if (minChildDP < 0 || minChildGQ < 0) {
+          error "minProbandDP and minProbandGQ must be non-negative"
+      }
+      def childFilter = '(GT="het" || ((CHROM="X" || CHROM="Y" || CHROM="chrX" || CHROM="chrY") && GT="alt"))' +
+                        ' && FMT/DP>=' + minChildDP + ' && FMT/GQ>=' + minChildGQ
+
       """
       export OMP_NUM_THREADS=1
       export MKL_NUM_THREADS=1
       export TF_NUM_INTRAOP_THREADS=1
       export TF_NUM_INTEROP_THREADS=1
-      
-      bcftools view -f PASS ${vcf[0]} -Oz -o filtered.vcf.gz
+
+      PRIMARY=\$(bcftools index -s "${vcf[0]}" \
+          | awk '\$1 ~ /^(chr)?([1-9]|1[0-9]|2[0-2]|X|Y)\$/ {print \$1}' \
+          | paste -sd, -)
+      if [[ -z "\$PRIMARY" ]]; then
+          echo "No primary chromosomes found in ${vcf[0]}" >&2
+          exit 1
+      fi
+
+      bcftools view -f PASS -r "\$PRIMARY" -T ${params.easyRegions} --targets-overlap pos -i '${childFilter}' ${vcf[0]} -Oz -o filtered.vcf.gz
       bcftools index filtered.vcf.gz
 
-      bcftools isec -C filtered.vcf.gz ${vcf[1]} ${vcf[2]} ${gnomad_snps} > all_variants.txt
-      split -d -n l/16 -a 2 --additional-suffix=.txt all_variants.txt part_variants
+      bcftools isec -C -c none filtered.vcf.gz ${vcf[1]} ${vcf[2]} ${params.gnomadCommon} > all_variants.txt
+      split -e -d -n l/16 -a 2 \
+      --additional-suffix=.txt \
+      all_variants.txt part_variants
 
       parallel --jobs 16 "
       echo 'Processing {}' ; \
