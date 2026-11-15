@@ -30,7 +30,7 @@ process MANTA {
       mkdir manta_rundir
 
       # Copy the installed Manta configuration
-      MANTA_INI="\$(dirname "\$(command -v configManta.py)")/configManta.py.ini"
+      MANTA_INI="/usr/local/share/manta-1.6.0-1/bin/configManta.py.ini"
       cp "\$MANTA_INI" manta.cnv.ini
 
       # Disable expensive remote read retrieval
