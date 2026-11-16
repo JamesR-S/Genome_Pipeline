@@ -27,6 +27,13 @@ process RUST_COVERAGE {
       """
       set -euo pipefail
 
+      # Use the Nextflow work directory for temporary files
+      mkdir -p "\$PWD/java_tmp"
+      export TMPDIR="\$PWD/java_tmp"
+
+      # Apply JVM options to Java launched by Rust
+      export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=\$PWD/java_tmp -XX:-UsePerfData"
+      javac -d . CompatMetadata.java
       # Keep sample order identical to ch_collapsed (sorted by sample id).
       printf '%s\\n' ${bamArgs} > samples.list
 
