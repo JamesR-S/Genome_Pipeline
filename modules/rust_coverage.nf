@@ -2,6 +2,7 @@ process RUST_COVERAGE {
     tag "batch_${id[0]}"
     cpus 16
     memory '64 GB'
+    module 'Clang/17.0.6-GCCcore-13.2.0'
 
     // Keep the BAMs on the shared filesystem. Copying 50 whole-genome BAMs
     // to node scratch could dominate the actual coverage calculation.
