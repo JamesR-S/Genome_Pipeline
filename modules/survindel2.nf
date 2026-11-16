@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process SURVINDEL2 {
     cpus 16
-    memory 240.GB
+    memory 228.GB
     tag { id }
     container 'jamescraufurd/survindel2:latest'
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.survindel2model} -B ${params.batchDir} -B ${params.rsync}")

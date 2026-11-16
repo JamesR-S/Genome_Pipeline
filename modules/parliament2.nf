@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process PARLIAMENT2 {
     cpus 16
-    memory 120.GB
+    memory 228.GB
     tag { id }
     container 'jamescraufurd/parliament2:latest'
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B \$PWD:/home/dnanexus/in -B \$PWD:/home/dnanexus/out  -B ${params.batchDir} -B ${params.rsync}")

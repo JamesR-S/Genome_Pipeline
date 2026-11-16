@@ -1,7 +1,7 @@
 process DEEP_VARIANT {
     tag "${id}"
     cpus 16
-    memory 240.GB
+    memory 228.GB
 
     errorStrategy 'retry'
     maxRetries 3

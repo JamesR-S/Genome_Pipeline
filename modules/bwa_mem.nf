@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process BWA_MEM {
     cpus 16
-    memory 240.GB
+    memory 228.GB
     tag "${id}"
     stageInMode 'copy'
     module 'SAMtools/1.17-GCC-12.2.0'
