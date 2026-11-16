@@ -1,5 +1,6 @@
 process MERGE_BAMS {
     cpus 16
+    memory 120.GB
     tag "${meta.id}"
     container 'mgibio/samtools:v1.21-noble'
 

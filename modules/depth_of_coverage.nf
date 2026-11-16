@@ -1,6 +1,7 @@
 process DEPTH_OF_COVERAGE {
     tag "batch_${id[0]}"
     cpus 16
+    memory 128.GB
     
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

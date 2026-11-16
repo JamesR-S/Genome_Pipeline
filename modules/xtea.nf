@@ -3,6 +3,7 @@ process XTEA {
     container 'jamesrusssilsby/exetea:0.1.9d'
     containerOptions " -B ${params.xtea_libraries} -B ${params.batchDir} -B ${params.rsync}"
     cpus 16
+    memory 240.GB
     // publishDir(
     //     path: { "${params.batchDir}/r04_transposable_elements" },
     //     pattern: "*.vcf*",

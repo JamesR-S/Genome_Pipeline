@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 process SPRING2FQ {
     cpus 8
+    memory 120.GB
     tag "${id}"
     stageInMode 'copy'
     container 'docker://jamesrusssilsby/spring:latest'

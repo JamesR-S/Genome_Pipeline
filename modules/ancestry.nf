@@ -1,6 +1,7 @@
 process ANCESTRY {
     tag "${id}"
     cpus 16
+    memory 120.GB
     container 'jamesrusssilsby/gnomadtools:latest'
     containerOptions "-B ${params.resourcesDir}/gnomad_pca -B ${params.batchDir} -B ${params.rsync}"
     // publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true

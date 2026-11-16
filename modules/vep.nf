@@ -2,6 +2,7 @@
 process VEP {
     tag "${family}"
     cpus 16
+    memory 240.GB
     container 'docker://ensemblorg/ensembl-vep:release_114.1'
     containerOptions "-B ${params.vepData}:/data"
     input:

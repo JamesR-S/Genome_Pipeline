@@ -1,6 +1,7 @@
 
 process MARKDUP {
   cpus 16
+  memory 240.GB
   //publishDir "${params.batchDir}/r04_assembly", mode: 'copy', overwrite: true, failOnError: true
   tag "${id}"
   module 'SAMtools/1.22.1-GCC-14.2.0'

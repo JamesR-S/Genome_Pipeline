@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 process FIXMATE {
     cpus 8
+    memory 120.GB
     module 'SAMtools/1.22.1-GCC-14.2.0'
     tag "${id}"
 

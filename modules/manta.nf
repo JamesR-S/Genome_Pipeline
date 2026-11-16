@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process MANTA {
     cpus 16
-    memory '100G'
+    memory 240.GB
     tag { id.join('-') }
     container 'https://depot.galaxyproject.org/singularity/manta:1.6.0--h9ee0642_1'
     containerOptions("-B /usr/lib/locale/:/usr/lib/locale/ -B ${params.batchDir} -B ${params.rsync}")
