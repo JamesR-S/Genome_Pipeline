@@ -1,5 +1,6 @@
 process EXTRACT_UNMAPPED {
     tag "${id}"
+    cpus 2
     module 'SAMtools/1.17-GCC-12.2.0'
     input:
       tuple val(id), val(sex), val(family), val(trio), val(famSampleCount), file(bam), file(bai)

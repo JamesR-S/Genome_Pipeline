@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 process ALIGN_CYTOMEGALOVIRUS {
-    cpus 16
+    cpus 4
     tag "${id}"
     // publishDir "${params.batchDir}/r04_cytomegalovirus", mode: 'copy', overwrite: true, failOnError: true
     input:
@@ -9,7 +9,7 @@ process ALIGN_CYTOMEGALOVIRUS {
       tuple val(id), val(sex), val(family), val(famSampleCount),file("${id}_cytomegalovirus_grepped2.sam")
     script:
       """
-      ${params.bwaMem2} mem -t 16 -M  ${params.cytomegaloFasta} ${fastq} > ${id}_cytomegalovirus.sam
+      ${params.bwaMem3} mem -t 4 -M  ${params.cytomegaloFasta} ${fastq} > ${id}_cytomegalovirus.sam
 
       grep '^@\\|NC_006273\\.2' ${id}_cytomegalovirus.sam > ${id}_cytomegalovirus_grepped2.sam
 

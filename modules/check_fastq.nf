@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
 process CHECK_FASTQ {
+    cpus 4
     tag "${meta.id}"
     //publishDir "${params.batchDir}/r04_metrics", mode: 'copy', overwrite: true, failOnError: true
     container 'docker://amazoncorretto:21.0.7'
